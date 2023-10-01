@@ -2,13 +2,14 @@ import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font, Alignment
+import html  
 
-EXCEL_SOURCE_FILE = "_MMA21b"
+EXCEL_SOURCE_FILE = "_MMA21aL.xlsx"
 MAX_POINTS = 39
 data_grades = []  # List to store the grades
 
 def read_excel(file_name):
-    return pd.read_excel(f'{file_name}.xlsx')
+    return pd.read_excel(EXCEL_SOURCE_FILE)
 
 def compute_note_value(total_points):
     return (5/MAX_POINTS) * total_points + 1
@@ -39,7 +40,7 @@ def swap_name_order(name):
 
 def save_row_as_excel(row, max_points):
     name = swap_name_order(row['Name'])
-    output_filename = f'{name}.xlsx'
+    output_filename = f'{EXCEL_SOURCE_FILE.replace("_", "").replace(".xlsx", "")}_{name}.xlsx'
     row_df = pd.DataFrame([row])
     transposed_row = row_df.transpose()
     transposed_row.to_excel(output_filename, header=False, index=True)
@@ -47,6 +48,22 @@ def save_row_as_excel(row, max_points):
     book = load_workbook(output_filename)
     sheet = book.active
     format_excel_sheet(sheet, row, max_points, name)
+
+    # Reopen the source file to check for columns with "Feedback"
+    sheet.append([None, None, None])
+    sheet.append([None, None, None])
+    source_df = read_excel(EXCEL_SOURCE_FILE)
+    feedback_cols = [col for col in source_df.columns if "Feedback" in col]
+    for col in feedback_cols:
+        feedback_value = source_df.at[row.name, col]
+        if pd.notna(feedback_value):  # Check if the feedback value is not NaN
+            # Convert line breaks and spaces to make them readable in Excel
+            feedback_value = feedback_value.replace("&nbsp;", " ").replace("<br>", "\n")
+            feedback_value = html.unescape(feedback_value)
+            sheet.append([col, feedback_value])
+            # Set wrap_text to True for the feedback cell to make line breaks visible
+            sheet.cell(row=sheet.max_row, column=2).alignment = Alignment(wrap_text=True)
+
     book.save(output_filename)
 
 def format_excel_sheet(sheet, row, max_points, name):
@@ -64,7 +81,7 @@ def format_excel_sheet(sheet, row, max_points, name):
     for cell in sheet[sheet.max_row]:
         cell.font = Font(bold=True)
     sheet.column_dimensions['A'].width = 300 / 6
-    sheet.column_dimensions['B'].width = 105 / 6
+    sheet.column_dimensions['B'].width = 300 / 6
 
 def export_grades_sheet():
     df_export = pd.DataFrame(data_grades, columns=["Name", "Total points", "Note"])
