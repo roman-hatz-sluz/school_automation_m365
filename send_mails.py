@@ -1,7 +1,6 @@
 import os
 import openpyxl
 import subprocess
-import art
 import time
 
 
