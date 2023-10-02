@@ -47,14 +47,10 @@ def process_excel_files_in_directory(directory_path):
             email_address = sheet.cell(row=1, column=2).value
             name = sheet.cell(row=2, column=2).value
 
-            # Create a draft with the extracted email address and attach the Excel file
-            # create_and_send_email(
-            #      "Prüfung M290 - Resultat", email_address, "", file_path
-            # )
             create_and_send_email(
                 "Prüfung M290 - Resultat",
-                "lfo@gmx.ch",
-                f"Gratulation {name}",
+                email_address,
+                name,
                 file_path,
             )
             time.sleep(1)
