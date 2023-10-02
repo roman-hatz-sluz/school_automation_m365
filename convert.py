@@ -4,8 +4,14 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font, Alignment
 import html  
 
-EXCEL_SOURCE_FILE = "_MMA21aL.xlsx"
-MAX_POINTS = 39
+
+EXCEL_SOURCE_FILE = "_MMA21cL.xlsx"
+MAX_POINTS = 40
+# Feedback is provided for questions with text answers, also the student may read his answer
+QUESTIONS_WITH_TEXT_ANSWERS = ["Stellen Sie sich vor, ein grosser Onlineshop", "Das folgende Diagramm beschreibt eine Musikdatenbank"]
+
+# GLOBALS
+TRUNCATE_COL_VALUES=80
 data_grades = []  # List to store the grades
 
 def read_excel(file_name):
@@ -19,8 +25,8 @@ def rename_points_columns(df):
     rename_dict = {}
     for idx, col in enumerate(points_cols, 1):
         new_col_name = col.replace("Points", f"({idx})")
-        if len(new_col_name) > 100:
-            new_col_name = new_col_name[:97] + "..."
+        if len(new_col_name) > TRUNCATE_COL_VALUES:
+            new_col_name = new_col_name[:(TRUNCATE_COL_VALUES-3)] + "..."
         rename_dict[col] = new_col_name
     df.rename(columns=rename_dict, inplace=True)
     return df, rename_dict
@@ -29,7 +35,7 @@ def filter_columns(df, rename_dict):
     first_six_cols = df.iloc[:, :6].columns.tolist()
     cols_to_keep = first_six_cols + list(rename_dict.values())
     df = df[cols_to_keep].copy()
-    df.drop(columns=['Email', 'ID', "Start time", "Completion time"], inplace=True, errors='ignore')
+    df.drop(columns=['ID', "Start time", "Completion time"], inplace=True, errors='ignore')
     return df
 
 def swap_name_order(name):
@@ -53,17 +59,27 @@ def save_row_as_excel(row, max_points):
     sheet.append([None, None, None])
     sheet.append([None, None, None])
     source_df = read_excel(EXCEL_SOURCE_FILE)
-    feedback_cols = [col for col in source_df.columns if "Feedback" in col]
-    for col in feedback_cols:
-        feedback_value = source_df.at[row.name, col]
-        if pd.notna(feedback_value):  # Check if the feedback value is not NaN
-            # Convert line breaks and spaces to make them readable in Excel
-            feedback_value = feedback_value.replace("&nbsp;", " ").replace("<br>", "\n")
-            feedback_value = html.unescape(feedback_value)
-            sheet.append([col, feedback_value])
-            # Set wrap_text to True for the feedback cell to make line breaks visible
-            sheet.cell(row=sheet.max_row, column=2).alignment = Alignment(wrap_text=True)
 
+    all_matching_columns = []  # Store all matching columns for all questions
+
+    for question in QUESTIONS_WITH_TEXT_ANSWERS:
+        matching_columns = [col for col in source_df.columns if question in str(col) and not col.startswith("Points")]
+        all_matching_columns.extend(matching_columns)
+
+    for col in all_matching_columns:
+        question_value = source_df.at[row.name, col]
+        if pd.notna(question_value):
+            question_value=str(question_value)
+            # Convert line breaks and spaces to make them readable in Excel
+            question_value = question_value.replace("&nbsp;", " ").replace("<br>", "\n").replace("</span>", "").replace("<span>", "")
+            question_value = html.unescape(question_value)
+            if col.startswith("Feedback"):
+                col = "Feedback"
+            sheet.append([col, question_value])  # Use col instead of question to display the actual column name
+            sheet.cell(row=sheet.max_row, column=1).alignment = Alignment(vertical='top', wrap_text=True)
+            sheet.cell(row=sheet.max_row, column=2).alignment = Alignment(vertical='top', wrap_text=True)
+
+  
     book.save(output_filename)
 
 def format_excel_sheet(sheet, row, max_points, name):
