@@ -9,6 +9,7 @@
     "@pnp/cli-microsoft365": "^7.0.0"
   },
   "scripts": {
-    "m365": "node ./m365.js"
+    "send_message": "node ./m365.js",
+    "login": "node_modules/.bin/m365 login"
   }
 }
