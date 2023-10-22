@@ -3,6 +3,7 @@ import { exec } from "child_process";
 // Define the command you want to execute
 const commandBase = "node_modules/.bin/m365";
 
+// note: html content is not supported by cli-m365
 const commands = {
   status: "",
   login: "",
