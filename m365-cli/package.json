@@ -1,0 +1,14 @@
+{
+  "name": "m365-test",
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "@pnp/cli-microsoft365": "^7.0.0"
+  },
+  "scripts": {
+    "m365": "node ./m365.js"
+  }
+}
