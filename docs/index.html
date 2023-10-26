@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmarklet-Installation für "Schulnetz-Noten-Copy-Paste"</title>
+</head>
+<body>
+
+<h1>Bookmarklet-Installation für "Schulnetz-Noten-Copy-Paste"</h1>
+
+<p>Ein Bookmarklet ist ein spezielles Lesezeichen, das JavaScript-Code enthält. Folgen Sie diesen einfachen Schritten, um das Bookmarklet "Schulnetz-Noten-Copy-Paste" zu installieren:</p>
+
+<h2>Installation</h2>
+
+<ol>
+    <li>Stellen Sie sicher, dass Ihre Lesezeichen-Leiste sichtbar ist:
+        <ul>
+            <li>Bei den meisten Browsern kann sie durch Drücken von <code>Ctrl+Shift+B</code> (Windows/Linux) oder <code>Command+Shift+B</code> (Mac) eingeblendet werden.</li>
+        </ul>
+    </li>
+    <li>Fügen Sie das Bookmarklet hinzu:
+        <ul>
+            <li>Ziehen Sie den folgenden Link per Drag-and-Drop in Ihre Lesezeichen-Leiste:
+                <a href="javascript:(async%20function(){window.focus();await%20new%20Promise(resolve=>setTimeout(resolve,500));if(!navigator.clipboard){console.error('Clipboard%20API%20not%20supported%20in%20this%20browser.');return;}try{const%20text=await%20navigator.clipboard.readText();console.log('Clipboard%20content:',text);const%20values=text.trim().split('\n');for(let%20i=0;i<values.length;i++){console.log('Value%20${i+1}:',values[i]);const%20elem=document.querySelector('#feld_${i+1}');if(elem){elem.value=values[i];}}}catch(err){console.error('Could%20not%20read%20from%20clipboard:',err);}})()">Schulnetz-Noten-Copy-Paste</a>
+            </li>
+        </ul>
+    </li>
+</ol>
+
+<h2>Verwendung</h2>
+
+<p>Um das Bookmarklet auszuführen, klicken Sie einfach auf das Lesezeichen "Schulnetz-Noten-Copy-Paste" in Ihrer Lesezeichen-Leiste, wenn Sie auf einer Webseite sind.</p>
+
+<h2>Hinweis</h2>
+
+<p>Einige Webseiten können die Ausführung von Bookmarklets blockieren. Wenn das Bookmarklet auf einer bestimmten Seite nicht funktioniert, versuchen Sie es auf einer anderen Webseite.</p>
+
+</body>
+</html>
