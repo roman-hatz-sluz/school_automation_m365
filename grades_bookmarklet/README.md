@@ -2,6 +2,8 @@
 Keine Lust die Noten im Schulnetz Zeile für Zeile manuell hinzuzufügen? 
 Mit diesem Bookmarklet kannst Du die Noten von deinem Excel Notenblatt in Schulnetz copy-pasten.  
 
+[Link text Here](https://link-url-here.org)
+
 # Bookmarklet-Installation
 Ein Bookmarklet ist ein spezielles Lesezeichen, das JavaScript-Code enthält. Folgen Sie diesen einfachen Schritten, um das Bookmarklet zu installieren:
 
