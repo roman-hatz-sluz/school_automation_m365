@@ -1,0 +1,24 @@
+{
+  "name": "ms_forms_to_excel_grades",
+  "version": "1.0.0",
+  "description": "## convert.py",
+  "main": "1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roman-hatz-sluz/ms_forms_to_excel_grades.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/roman-hatz-sluz/ms_forms_to_excel_grades/issues"
+  },
+  "homepage": "https://github.com/roman-hatz-sluz/ms_forms_to_excel_grades#readme",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "html-entities": "^2.5.2"
+  }
+}
