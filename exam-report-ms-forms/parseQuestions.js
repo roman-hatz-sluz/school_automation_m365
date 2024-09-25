@@ -23,7 +23,7 @@ function extractPointsFromJson(filePath) {
   }
 
   // Sort the questions by the 'order' field
-  questions.sort((a, b) => a.order - b.order);
+  sortedQuestions = questions.sort((a, b) => Number(a.order) - Number(b.order));
 
   return { sortedQuestions: questions, totalPoints };
 }
@@ -35,12 +35,12 @@ function processQuestion(question) {
     const cleanedText = stripHtmlTags(formsProRTQuestionTitle);
     if (parsedInfo.Point) {
       const point = parsedInfo.Point;
-      questionCount = questionCount + 1;
+
       questions.push({
         id,
         cleanedText,
         Point: point,
-        questionCount,
+        order: order,
         type: type || null,
       });
       totalPoints += point;
@@ -68,12 +68,21 @@ function main() {
   const { sortedQuestions, totalPoints } =
     extractPointsFromJson(questionsFilePath);
 
+  let questionCount = 0;
+  sortedQuestions.forEach((question, idx) => {
+    sortedQuestions[idx]["questionCount"] = ++questionCount;
+  });
   const result = {
     questions: sortedQuestions,
     meta: { totalPoints: totalPoints, questionCount: questionCount },
   };
 
-  console.log(JSON.stringify(result, null, 4));
+  try {
+    fs.writeFileSync("temp.json", JSON.stringify(result, null, 4), "utf8");
+    console.log("File has been successfully written to temp.json");
+  } catch (err) {
+    console.error("An error occurred while writing JSON to file:", err);
+  }
 }
 
 if (require.main === module) {

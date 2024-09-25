@@ -5,6 +5,7 @@ from openpyxl.styles import Font, Alignment
 import html
 import argparse
 import json
+import pprint
 
 # Setup argument parser
 parser = argparse.ArgumentParser(description="Process Excel file for M324 exam")
@@ -27,12 +28,6 @@ EXCEL_SOURCE_PATH = args.excel_source_path
 EXCEL_SOURCE_FILE = args.excel_source_file
 MAX_POINTS = args.max_points
 JSON_FILE = "temp.json"
-
-# Feedback is provided for questions with text answers, also the student may read his answer
-QUESTIONS_WITH_TEXT_ANSWERS = [
-    "Ihr Team hat ein neues Software-Update veröffentlicht",
-    "SemVer (semantische Versionierung) beschreibt mehrere Komponenten i",
-]
 
 # GLOBALS
 TRUNCATE_COL_VALUES = 800
@@ -89,7 +84,7 @@ def swap_name_order(name):
     return f"{surname} {first_name}"
 
 
-def save_row_as_excel(row, max_points):
+def save_row_as_excel(row, max_points, text_questions):
 
     name = swap_name_order(row["Name"])
     output_filename = f'{EXCEL_SOURCE_PATH}/responses/{EXCEL_SOURCE_FILE.replace("_", "").replace(".xlsx", "")}_{name}.xlsx'
@@ -100,17 +95,17 @@ def save_row_as_excel(row, max_points):
     book = load_workbook(output_filename)
     sheet = book.active
     format_excel_sheet(sheet, row, max_points, name)
-    # Reopen the source file to check for columns with "Feedback"
 
+    # Reopen the source file to check for columns with "Feedback"
     source_df = read_excel(EXCEL_SOURCE_FILE)
 
-    all_matching_columns = []  # Store all matching columns for all questions
+    all_matching_columns = []  # Store all matching columns for all text questions
 
-    for question in QUESTIONS_WITH_TEXT_ANSWERS:
+    for question_number in text_questions:
         matching_columns = [
             col
             for col in source_df.columns
-            if question in str(col) and not col.startswith("Punkte")
+            if f"({question_number})" in str(col) and not col.startswith("Punkte")
         ]
         all_matching_columns.extend(matching_columns)
 
@@ -181,17 +176,71 @@ def export_grades_sheet():
     # Save the changes
     book.save(output_filename)
 
+def create_question_structure_from_excel(df):
+    # Initialize the list to store question data and column mappings
+    questions = []
+    question_count = 0
+
+    # Get the column mapping for the first metadata columns
+    mapping = {
+        "E-Mail": df.columns.get_loc("E-Mail") + 1,  # Adjusting for 1-based indexing in Excel
+        "Name": df.columns.get_loc("Name") + 1,
+        "Gesamtpunktzahl": df.columns.get_loc("Gesamtpunktzahl") + 1,
+    }
+
+    # Questions start at column 8, each question takes up 3 columns (Question, Points, Feedback)
+    first_question_col = 8
+    question_mapping = {}
+
+    # Calculate question column positions and build question entries
+    col_names = df.columns.tolist()
+
+    for i in range(first_question_col - 1, len(col_names), 3):  # Iterate over columns in sets of 3 (Question, Points, Feedback)
+        if i < len(col_names):  # Ensure the question title column exists
+            question_title = col_names[i]  # First column is the question title
+        else:
+            continue  # Skip if question title column doesn't exist
+
+        
+        # Increment question count
+        question_count += 1
+
+       
+        # Create a question entry
+        question_entry = {
+            "question_title": question_title,
+            "points_col": i + 2,
+            "question_count": question_count,
+            "row_index": i + 1  # 1-based index for the question's row in Excel
+        }
+
+        # Append the question entry to the questions list
+        questions.append(question_entry)
+
+        # Map this question into the question mapping (for further usage if needed)
+        question_mapping[question_count] = {
+            "title_col": i + 1,  
+            "points_col": i + 2,
+            "feedback_col": i + 3  
+        }
+
+    return mapping, questions, question_mapping
 
 def main():
     json_data = read_json(JSON_FILE)
     text_questions = extract_text_field_questions(json_data["questions"])
 
     df = read_excel(EXCEL_SOURCE_FILE)
+     
+   
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(create_question_structure_from_excel(df))
+    exit(1)
     df, rename_dict = rename_points_columns(df)
     df = filter_columns(df, rename_dict)
 
     for _, row in df.iterrows():
-        save_row_as_excel(row, MAX_POINTS)
+        save_row_as_excel(row, MAX_POINTS, text_questions)
     export_grades_sheet()
 
 

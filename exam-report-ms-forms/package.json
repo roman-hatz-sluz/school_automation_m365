@@ -18,7 +18,10 @@
   },
   "homepage": "https://github.com/roman-hatz-sluz/ms_forms_to_excel_grades#readme",
   "dependencies": {
+    "argparse": "^2.0.1",
     "commander": "^12.1.0",
-    "html-entities": "^2.5.2"
+    "html-entities": "^2.5.2",
+    "json-pretty": "^0.0.1",
+    "xlsx": "^0.18.5"
   }
 }
