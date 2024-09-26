@@ -6,7 +6,8 @@
     "node": "18.x"
   },
   "dependencies": {
-    "@pnp/cli-microsoft365": "^7.0.0"
+    "@pnp/cli-microsoft365": "^9.0.0",
+    "npm-check-updates": "^17.1.3"
   },
   "scripts": {
     "send_message": "node ./m365.js",

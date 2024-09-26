@@ -4,7 +4,11 @@
   "description": "## convert.py",
   "main": "1.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint ./"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "8.x"
   },
   "repository": {
     "type": "git",
@@ -20,8 +24,13 @@
   "dependencies": {
     "argparse": "^2.0.1",
     "commander": "^12.1.0",
+    "eslint": "^9.11.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "exceljs": "^4.4.0",
     "html-entities": "^2.5.2",
     "json-pretty": "^0.0.1",
+    "prettier": "^3.3.3",
+    "puppeteer": "^23.4.1",
     "xlsx": "^0.18.5"
   }
 }

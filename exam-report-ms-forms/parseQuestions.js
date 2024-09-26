@@ -69,7 +69,7 @@ function main() {
     extractPointsFromJson(questionsFilePath);
 
   let questionCount = 0;
-  sortedQuestions.forEach((question, idx) => {
+  sortedQuestions.forEach((_, idx) => {
     sortedQuestions[idx]["questionCount"] = ++questionCount;
   });
   const result = {
@@ -79,7 +79,6 @@ function main() {
 
   try {
     fs.writeFileSync("temp.json", JSON.stringify(result, null, 4), "utf8");
-    console.log("File has been successfully written to temp.json");
   } catch (err) {
     console.error("An error occurred while writing JSON to file:", err);
   }

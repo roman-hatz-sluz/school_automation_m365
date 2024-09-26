@@ -1,30 +1,9 @@
 const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
-const htmlEntities = require("html-entities").decode;
-const argparse = require("argparse");
-const jsonPretty = require("json-pretty");
-
-// Setup argument parser
-const parser = new argparse.ArgumentParser({
-  description: "Process Excel file for M324 exam",
-});
-
-parser.add_argument("--excel_source_path", {
-  type: "str",
-  required: true,
-  help: "Path to the Excel source directory",
-});
-parser.add_argument("--excel_source_file", {
-  type: "str",
-  required: true,
-  help: "Excel source file name",
-});
-parser.add_argument("--max_points", {
-  type: "int",
-  required: true,
-  help: "Maximum points for the exam",
-});
+const excelJS = require("exceljs");
+const { parser } = require("./convertExcelArgs");
+const { convertExceltoPDF } = require("./convertExceltoPDF");
 
 const args = parser.parse_args();
 const EXCEL_SOURCE_PATH = args.excel_source_path;
@@ -34,72 +13,27 @@ const JSON_FILE = "temp.json";
 
 // GLOBALS
 const TRUNCATE_COL_VALUES = 800;
-let dataGrades = [];
 
-// Read JSON file
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf-8"));
 }
 
-// Extract text field questions
-function extractTextFieldQuestions(jsonData) {
-  return jsonData
-    .filter((question) => question.type === "Question.TextField")
-    .map((question) => question.questionCount);
-}
-
-// Read Excel file
 function readExcel(fileName) {
   const filePath = path.join(EXCEL_SOURCE_PATH, fileName);
   const workbook = xlsx.readFile(filePath);
-  return xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+  // Keep empty rows by setting defval to null and raw to true
+  return xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {
+    raw: true,
+    defval: "",
+  });
 }
 
-// Compute note value
 function computeNoteValue(totalPoints) {
-  return (5 / MAX_POINTS) * totalPoints + 1;
+  let result = (5 / MAX_POINTS) * totalPoints + 1;
+  return Math.round(result * 4) / 4;
 }
 
-// Rename points columns
-function renamePointsColumns(df) {
-  const pointsCols = Object.keys(df[0]).filter((col) => col.includes("Punkte"));
-  const renameDict = {};
-
-  pointsCols.forEach((col, idx) => {
-    let newColName = col.replace("Punkte", `(${idx + 1})`);
-    if (newColName.length > TRUNCATE_COL_VALUES) {
-      newColName = newColName.substring(0, TRUNCATE_COL_VALUES - 3) + "...";
-    }
-    renameDict[col] = newColName;
-  });
-
-  df.forEach((row) => {
-    Object.keys(renameDict).forEach((oldCol) => {
-      row[renameDict[oldCol]] = row[oldCol];
-      delete row[oldCol];
-    });
-  });
-
-  return [df, renameDict];
-}
-
-// Filter columns
-function filterColumns(df, renameDict) {
-  const firstSixCols = Object.keys(df[0]).slice(0, 6);
-  const colsToKeep = [...firstSixCols, ...Object.values(renameDict)];
-
-  return df.map((row) => {
-    const filteredRow = {};
-    colsToKeep.forEach((col) => {
-      if (row[col] !== undefined) {
-        filteredRow[col] = row[col];
-      }
-    });
-    return filteredRow;
-  });
-}
-
-// Swap name order
 function swapNameOrder(name) {
   const nameParts = name.split(" ");
   const surname = nameParts.pop();
@@ -107,67 +41,66 @@ function swapNameOrder(name) {
 }
 
 // Save row as Excel
-function saveRowAsExcel(row, maxPoints, textQuestions) {
-  const name = swapNameOrder(row["Name"]);
+async function saveRowAsExcel(questions, df, rowIndex) {
+  const name = swapNameOrder(df[rowIndex]["Name"]);
   const outputFilename = `${EXCEL_SOURCE_PATH}/responses/${EXCEL_SOURCE_FILE.replace(
     "_",
     ""
   ).replace(".xlsx", "")}_${name}.xlsx`;
 
-  // Convert row to Excel
-  const newRow = Object.keys(row).map((key) => [key, row[key]]);
+  // Create basic structure of the new sheet
+  const newRow = [];
+
+  // (1) Print first 3 rows with titles E-Mail, Name, Gesamtpunktzahl
+  newRow.push(["Name", df[rowIndex]["Name"]]);
+  newRow.push(["E-Mail", df[rowIndex]["E-Mail"]]);
+  newRow.push([
+    "Gesamtpunktzahl",
+    df[rowIndex]["Gesamtpunktzahl"] +
+      `/${MAX_POINTS}, Note: ${computeNoteValue(
+        df[rowIndex]["Gesamtpunktzahl"]
+      )}`,
+  ]);
+  console.log(
+    "Name:",
+    df[rowIndex]["Name"],
+    "| Note:",
+    computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])
+  );
+  // (2) Add two empty rows
+  newRow.push(["", ""]);
+  newRow.push(["", ""]);
+
+  // (3) Add the headers starting in the 5th row
+  newRow.push(["Frage", "Punkte", "Max Punkte", "Ihre Antwort", "Feedback"]);
+
+  // (4) Print output from data (answer, points, maxPoints, feedback)
+  questions.forEach((question) => {
+    newRow.push([
+      question.title,
+      question.points,
+      question.maxPoints,
+      question.feedback ? question.answer : "",
+      question.feedback,
+    ]);
+  });
+
+  // Convert the newRow to Excel format
   const newSheet = xlsx.utils.aoa_to_sheet(newRow);
   const newWorkbook = xlsx.utils.book_new();
   xlsx.utils.book_append_sheet(newWorkbook, newSheet, "Prüfungsergebnisse");
 
-  // Save file
+  // Save the file
   xlsx.writeFile(newWorkbook, outputFilename);
 
-  // Read source Excel for feedback columns
-  const sourceDf = readExcel(EXCEL_SOURCE_FILE);
-  const allMatchingColumns = [];
-
-  textQuestions.forEach((questionNumber) => {
-    const colIndex = 9; // Starting at column 9, each question takes 3 columns
-    console.log("with colIndex", colIndex, textQuestions);
-    // Extract the corresponding column names for the question, points, and feedback
-    const questionCol = Object.keys(sourceDf[0])[colIndex - 1];
-    const pointsCol = Object.keys(sourceDf[0])[colIndex]; // Points column
-    const feedbackCol = Object.keys(sourceDf[0])[colIndex + 1]; // Feedback column
-
-    // Only add non-undefined columns
-    [questionCol, pointsCol, feedbackCol].forEach((col) => {
-      if (col && !col.startsWith("Punkte")) {
-        allMatchingColumns.push(col);
-      }
-    });
-  });
-
-  console.log("allMatchingColumns", allMatchingColumns);
-  console.log("textQuestions", textQuestions);
-  return false;
-
-  // Add feedback data to Excel sheet
-  allMatchingColumns.forEach((col) => {
-    const questionValue = sourceDf[row.index][col];
-    if (questionValue) {
-      const formattedValue = htmlEntities(
-        questionValue
-          .replace(/&nbsp;/g, " ")
-          .replace(/<br>/g, "\n")
-          .replace(/<\/?span>/g, "")
-      );
-      newSheet[`${col}`] = { t: "s", v: formattedValue };
-    }
-  });
-
-  // Save updated workbook
-  xlsx.writeFile(newWorkbook, outputFilename);
+  await convertExceltoPDF(
+    outputFilename,
+    outputFilename.replace(".xlsx", ".pdf")
+  );
 }
-
+/*
 // Export grades sheet
 function exportGradesSheet() {
-  return false;
   const dfExport = dataGrades.map((item) => ({
     Name: item[0],
     Gesamtpunktzahl: item[1],
@@ -188,64 +121,59 @@ function exportGradesSheet() {
 
   // Save the grades sheet
   xlsx.writeFile(newWorkbook, outputFilename);
-}
-/*
-// Create question structure from Excel
-function createQuestionStructureFromExcel(df) {
-  const questions = [];
-  let questionCount = 0;
+}*/
 
-  // Map metadata columns
-  const mapping = {
-    "E-Mail": Object.keys(df[0]).indexOf("E-Mail") + 1,
-    Name: Object.keys(df[0]).indexOf("Name") + 1,
-    Gesamtpunktzahl: Object.keys(df[0]).indexOf("Gesamtpunktzahl") + 1,
-  };
+function mapRowData(row, jsonData, df) {
+  const result = [];
+  const keys = Object.keys(row);
 
-  // Extract question columns (Question, Points, Feedback)
-  const firstQuestionCol = 8;
-  const questionMapping = {};
+  jsonData.questions.forEach((question, idx) => {
+    // offset by 9 for first question, always 3 columns per question
+    const excelQuestionOffset = 8 + idx * 3;
 
-  for (let i = firstQuestionCol - 1; i < Object.keys(df[0]).length; i += 3) {
-    if (Object.keys(df[0])[i]) {
-      const questionTitle = Object.keys(df[0])[i];
-      questionCount++;
+    const points = parseFloat(row[keys[excelQuestionOffset + 1]]);
+    const feedback = row[keys[excelQuestionOffset + 2]];
+    let actualPoints, actualFeedback;
 
-      const questionEntry = {
-        question_title: questionTitle,
-        points_col: i + 2,
-        question_count: questionCount,
-        row_index: i + 1,
-      };
-
-      questions.push(questionEntry);
-      questionMapping[questionCount] = {
-        title_col: i + 1,
-        points_col: i + 2,
-        feedback_col: i + 3,
-      };
+    if (!isNaN(points)) {
+      // If points is a valid number, it's correct as is
+      actualPoints = points;
+      actualFeedback = feedback;
+    } else {
+      // If points is not a number, they might be switched
+      const potentialPoints = parseFloat(feedback);
+      if (!isNaN(potentialPoints)) {
+        actualPoints = potentialPoints;
+        actualFeedback = row[keys[excelQuestionOffset + 1]]; // feedback is actually in the points field
+      } else {
+        actualPoints = null; // Neither is a number, leave points as null
+        actualFeedback = feedback;
+      }
     }
-  }
+    if (actualPoints) {
+      result.push({
+        title: "(" + (idx + 1) + ") " + Object.keys(df[0])[excelQuestionOffset],
+        answer: row[keys[excelQuestionOffset]],
+        points: actualPoints,
+        maxPoints: question.Point,
+        feedback: actualFeedback,
+      });
+    }
+  });
 
-  return { mapping, questions, questionMapping };
+  return result;
 }
-*/
+
 // Main function
-function main() {
+async function main() {
   const jsonData = readJson(JSON_FILE);
-  const textQuestions = extractTextFieldQuestions(jsonData.questions);
 
   let df = readExcel(EXCEL_SOURCE_FILE);
 
-  // Rename and filter columns
-  const [renamedDf, renameDict] = renamePointsColumns(df);
-  df = filterColumns(renamedDf, renameDict);
-
-  df.forEach((row) => {
-    saveRowAsExcel(row, MAX_POINTS, textQuestions);
-  });
-
-  exportGradesSheet();
+  for (let [idx, row] of df.entries()) {
+    row = mapRowData(row, jsonData, df);
+    await saveRowAsExcel(row, df, idx);
+  }
 }
 
 // Execute main function
