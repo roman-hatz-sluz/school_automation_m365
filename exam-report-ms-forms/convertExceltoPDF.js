@@ -65,7 +65,12 @@ function generateHtmlFromExcel(worksheet) {
     html += `</tr>`;
   });
 
-  html += `</table>`;
+  html += `</table>
+  <footer style="text-align: center; padding: 10px; background-color: #f1f1f1; margin-top: 20px;">
+    <p>ICT Modul 324 - Prüfung 1 Teil A - Lehrperson: Roman Hatz 2024/2025</p>
+    <p>Source: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
+  </footer>
+`;
 
   return html;
 }

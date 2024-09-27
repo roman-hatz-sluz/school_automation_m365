@@ -1,7 +1,6 @@
 const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
-const excelJS = require("exceljs");
 const { parser } = require("./convertExcelArgs");
 const { convertExceltoPDF } = require("./convertExceltoPDF");
 
@@ -10,9 +9,6 @@ const EXCEL_SOURCE_PATH = args.excel_source_path;
 const EXCEL_SOURCE_FILE = args.excel_source_file;
 const MAX_POINTS = args.max_points;
 const JSON_FILE = "temp.json";
-
-// GLOBALS
-const TRUNCATE_COL_VALUES = 800;
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf-8"));
@@ -40,7 +36,6 @@ function swapNameOrder(name) {
   return `${surname} ${nameParts.join(" ")}`;
 }
 
-// Save row as Excel
 async function saveRowAsExcel(questions, df, rowIndex) {
   const name = swapNameOrder(df[rowIndex]["Name"]);
   const outputFilename = `${EXCEL_SOURCE_PATH}/responses/${EXCEL_SOURCE_FILE.replace(
@@ -48,18 +43,15 @@ async function saveRowAsExcel(questions, df, rowIndex) {
     ""
   ).replace(".xlsx", "")}_${name}.xlsx`;
 
-  // Create basic structure of the new sheet
   const newRow = [];
 
-  // (1) Print first 3 rows with titles E-Mail, Name, Gesamtpunktzahl
   newRow.push(["Name", df[rowIndex]["Name"]]);
   newRow.push(["E-Mail", df[rowIndex]["E-Mail"]]);
   newRow.push([
-    "Gesamtpunktzahl",
+    "Total",
     df[rowIndex]["Gesamtpunktzahl"] +
-      `/${MAX_POINTS}, Note: ${computeNoteValue(
-        df[rowIndex]["Gesamtpunktzahl"]
-      )}`,
+      ` von ${MAX_POINTS} Punkten
+       Note: ${computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])}`,
   ]);
   console.log(
     "Name:",
@@ -78,19 +70,17 @@ async function saveRowAsExcel(questions, df, rowIndex) {
   questions.forEach((question) => {
     newRow.push([
       question.title,
-      question.points,
+      question.points > 0 ? question.points : "0",
       question.maxPoints,
       question.feedback ? question.answer : "",
       question.feedback,
     ]);
   });
 
-  // Convert the newRow to Excel format
   const newSheet = xlsx.utils.aoa_to_sheet(newRow);
   const newWorkbook = xlsx.utils.book_new();
   xlsx.utils.book_append_sheet(newWorkbook, newSheet, "Prüfungsergebnisse");
 
-  // Save the file
   xlsx.writeFile(newWorkbook, outputFilename);
 
   await convertExceltoPDF(
@@ -98,30 +88,6 @@ async function saveRowAsExcel(questions, df, rowIndex) {
     outputFilename.replace(".xlsx", ".pdf")
   );
 }
-/*
-// Export grades sheet
-function exportGradesSheet() {
-  const dfExport = dataGrades.map((item) => ({
-    Name: item[0],
-    Gesamtpunktzahl: item[1],
-    Note: item[2],
-  }));
-
-  const outputFilename = `${EXCEL_SOURCE_PATH}${EXCEL_SOURCE_FILE}_Notenblatt.xlsx`;
-  const newSheet = xlsx.utils.json_to_sheet(dfExport);
-  const newWorkbook = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(newWorkbook, newSheet, "Sheet1");
-
-  // Add average row
-  const avgNote =
-    dfExport.reduce((acc, item) => acc + item.Note, 0) / dfExport.length;
-  xlsx.utils.sheet_add_aoa(newSheet, [["Average", null, avgNote]], {
-    origin: -1,
-  });
-
-  // Save the grades sheet
-  xlsx.writeFile(newWorkbook, outputFilename);
-}*/
 
 function mapRowData(row, jsonData, df) {
   const result = [];
@@ -150,15 +116,13 @@ function mapRowData(row, jsonData, df) {
         actualFeedback = feedback;
       }
     }
-    if (actualPoints) {
-      result.push({
-        title: "(" + (idx + 1) + ") " + Object.keys(df[0])[excelQuestionOffset],
-        answer: row[keys[excelQuestionOffset]],
-        points: actualPoints,
-        maxPoints: question.Point,
-        feedback: actualFeedback,
-      });
-    }
+    result.push({
+      title: "(" + (idx + 1) + ") " + Object.keys(df[0])[excelQuestionOffset],
+      answer: row[keys[excelQuestionOffset]],
+      points: actualPoints,
+      maxPoints: question.Point,
+      feedback: actualFeedback,
+    });
   });
 
   return result;
@@ -176,7 +140,6 @@ async function main() {
   }
 }
 
-// Execute main function
 if (require.main === module) {
   main();
 }

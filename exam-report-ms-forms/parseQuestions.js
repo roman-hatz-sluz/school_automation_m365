@@ -7,22 +7,18 @@ const { Command } = require("commander");
 
 let totalPoints = 0;
 let questions = [];
-let questionCount = 0;
 
 function extractPointsFromJson(filePath) {
   const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-  // Process descriptive questions
   if (data.descriptiveQuestions) {
     data.descriptiveQuestions.forEach(processQuestion);
   }
 
-  // Process normal questions
   if (data.questions) {
     data.questions.forEach(processQuestion);
   }
 
-  // Sort the questions by the 'order' field
   sortedQuestions = questions.sort((a, b) => Number(a.order) - Number(b.order));
 
   return { sortedQuestions: questions, totalPoints };

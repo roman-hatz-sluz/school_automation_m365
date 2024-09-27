@@ -40,6 +40,10 @@ const style = `<style>
     }
 
     tr:nth-child(6) {
+        font-style: italic;
+    }
+
+    tr:nth-child(3) {
         font-weight: bold;
     }
 
