@@ -2,7 +2,7 @@ const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
 const { parser } = require("./convertExcelArgs");
-const { convertExceltoPDF } = require("./convertExceltoPDF");
+const { convertExceltoHTML } = require("./convertExceltoHTML");
 
 const args = parser.parse_args();
 const EXCEL_SOURCE_PATH = args.excel_source_path;
@@ -45,13 +45,15 @@ async function saveRowAsExcel(questions, df, rowIndex) {
 
   const newRow = [];
 
-  newRow.push(["Name", df[rowIndex]["Name"]]);
-  newRow.push(["E-Mail", df[rowIndex]["E-Mail"]]);
+  newRow.push(["Name", "", "", df[rowIndex]["Name"]]);
+  newRow.push(["E-Mail", "", "", df[rowIndex]["E-Mail"]]);
   newRow.push([
     "Total",
+    "",
+    "",
     df[rowIndex]["Gesamtpunktzahl"] +
-      ` von ${MAX_POINTS} Punkten
-       Note: ${computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])}`,
+      ` von ${MAX_POINTS} Punkten <br>
+      <span style="text-decoration: underline">Note: ${computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])}</span>`,
   ]);
   console.log(
     "Name:",
@@ -83,9 +85,10 @@ async function saveRowAsExcel(questions, df, rowIndex) {
 
   xlsx.writeFile(newWorkbook, outputFilename);
 
-  await convertExceltoPDF(
+  await convertExceltoHTML(
     outputFilename,
-    outputFilename.replace(".xlsx", ".pdf")
+    outputFilename.replace(".xlsx", ".html"),
+    EXCEL_SOURCE_FILE
   );
 }
 
@@ -97,31 +100,26 @@ function mapRowData(row, jsonData, df) {
     // offset by 9 for first question, always 3 columns per question
     const excelQuestionOffset = 8 + idx * 3;
 
-    const points = parseFloat(row[keys[excelQuestionOffset + 1]]);
-    const feedback = row[keys[excelQuestionOffset + 2]];
-    let actualPoints, actualFeedback;
+    let points = row[keys[excelQuestionOffset + 1]];
+    let feedback = row[keys[excelQuestionOffset + 2]];
 
-    if (!isNaN(points)) {
-      // If points is a valid number, it's correct as is
-      actualPoints = points;
-      actualFeedback = feedback;
-    } else {
-      // If points is not a number, they might be switched
-      const potentialPoints = parseFloat(feedback);
-      if (!isNaN(potentialPoints)) {
-        actualPoints = potentialPoints;
-        actualFeedback = row[keys[excelQuestionOffset + 1]]; // feedback is actually in the points field
-      } else {
-        actualPoints = null; // Neither is a number, leave points as null
-        actualFeedback = feedback;
-      }
+    // points and feedback columns can be switched
+    // if points is a number and not a longer string
+
+    if (isNaN(points) || points.length > 4) {
+      let tempPoints = points;
+      points = feedback;
+      feedback = tempPoints;
     }
+    // dont print points as feedback, only text
+    feedback = feedback.length > 4 ? feedback : "";
+    //console.log("points:", points, "feedback:", feedback, question.Point);
     result.push({
       title: "(" + (idx + 1) + ") " + Object.keys(df[0])[excelQuestionOffset],
       answer: row[keys[excelQuestionOffset]],
-      points: actualPoints,
+      points: parseFloat(points),
       maxPoints: question.Point,
-      feedback: actualFeedback,
+      feedback: feedback,
     });
   });
 

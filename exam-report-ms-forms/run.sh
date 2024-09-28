@@ -1,12 +1,17 @@
 #!/bin/bash
 
+# Variables to change
+FOLDER="pruefung_m290_MMA22"
+EXCEL_SOURCE_FILE="ICT Modul 290 - Prüfung.xlsx"
+MAX_POINTS=42
+
+#FOLDER="pruefung_m324_ims22d"
+#EXCEL_SOURCE_FILE="M324_Test_1_.xlsx"
+#MAX_POINTS=37
 # Variables
 JSON_FILE="temp.json"
 SCRIPT1="parseQuestions.js"
 SCRIPT2="convertExcel.js"
-FOLDER="pruefung_m324_ims22d"
-EXCEL_SOURCE_FILE="M324_Test_1_.xlsx"
-MAX_POINTS=37
 EXCEL_SOURCE_PATH="./${FOLDER}/"
 RESPONSE_FOLDER="${EXCEL_SOURCE_PATH}responses"
 

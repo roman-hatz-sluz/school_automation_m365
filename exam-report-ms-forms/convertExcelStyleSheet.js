@@ -1,65 +1,96 @@
 const style = `<style>
-    body {
-        font-family: 'Roboto', sans-serif;
-       font-size: 10px
-    }
-        * {
-     font-size: 10px;}
+  /* General Body Styling */
+/* General Body Styling */
+body {
+    padding: 24px;
+    background-color: #f5f7fa; /* Softer, neutral background */
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6; /* Improved line spacing for readability */
+    color: #333; /* Darker text for better contrast */
+}
 
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        margin: 20px 0;
-    }
+/* Headings */
+h2 {
+    color: #2388C6; /* Use blue for headings */
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
 
-    th,
-    td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
+/* Table Styling */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Softer shadow for a cleaner look */
+    margin: 20px 0;
+    background-color: white;
+    border-radius: 8px; /* Adds rounded corners to the table */
+    overflow: hidden;
+}
 
-    th {
-        background-color: #3f51b5;
-        color: white;
-        text-transform: uppercase;
-    }
+/* Header and Cell Styling */
+th,
+td {
+    padding: 16px; /* Increased padding for better spacing */
+    text-align: left;
+    border: 1px solid #ddd;
+    font-size: 14px; /* Slightly larger font for better readability */
+}
 
-    tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
+/* Header Specific Styling */
+th {
+    background-color: #2388C6; /* Use blue for table headers */
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Slight spacing for more elegant look */
+    font-weight: 500;
+}
 
-    tr:hover {
-        background-color: #e0e0e0;
-    }
+/* Alternating Row Colors */
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
 
-    tr:empty {
-        height: 20px;
-        background-color: #f0f0f0;
-    }
+tr:nth-child(odd) {
+    background-color: white;
+}
 
-    tr:nth-child(6) {
-        font-style: italic;
-    }
 
-    tr:nth-child(3) {
-        font-weight: bold;
-    }
+/* Column Specific Styling */
+td:last-child {
+    color: #ff6b6b; /* Emphasize feedback column */
+}
 
-    td,
-    th {
-        border: 1px solid #ddd;
-    }
+th:last-child,
+tr:nth-child(1) td:last-child,
+tr:nth-child(3) td:last-child {
+    color: #2388C6; /* Use blue for results */
+}
 
-    td:last-child {
-        color: #ff5252;
-        /* For feedback column */
-    }
+tr:nth-child(6)   {
+    font-style: italic; 
+}
+ 
 
-    td {
-        word-wrap: break-word;
-        white-space: normal;
-    }
+/* Footer Styling */
+.footer {
+    text-align: center;
+    padding: 16px;
+    background-color: #f1f1f1;
+    margin-top: 20px;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Links in Footer */
+.footer a {
+    color: #2388C6; /* Use blue for links */
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
 </style>`;
 module.exports = style;
