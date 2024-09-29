@@ -52,7 +52,7 @@ async function saveRowAsExcel(questions, df, rowIndex) {
     "",
     "",
     df[rowIndex]["Gesamtpunktzahl"] +
-      ` von ${MAX_POINTS} Punkten <br>
+      ` von ${MAX_POINTS} Punkten <br><br>
       <span style="text-decoration: underline">Note: ${computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])}</span>`,
   ]);
   console.log(

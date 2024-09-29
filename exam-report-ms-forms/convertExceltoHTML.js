@@ -29,19 +29,43 @@ function generateHtmlFromExcel(worksheet, examTitle = "", outputFilePath) {
   worksheet.eachRow({ includeEmpty: true }, (row, rowIndex) => {
     html += `<tr>`;
     let columnCounter = 0;
-    row.eachCell({ includeEmpty: true }, (cell) => {
-      columnCounter++;
-      // Apply style for bold text for the first row
-      const bold = rowIndex === 1 ? "font-weight:bold;" : "";
-      // Adjust cell content for long text
 
+    row.eachCell({ includeEmpty: true }, (cell, cellIndex) => {
+      let classNames = [];
+      columnCounter++;
+      // bold for result rows
+
+      if (rowIndex === 1 || rowIndex === 3) {
+        classNames.push("td_bold");
+      }
+      // normalize
       let cellValue = cell.value || ""; // Ensure empty cells are rendered as empty
 
+      console.log(
+        "cellValue",
+        cellValue,
+        "rowIndex",
+        rowIndex,
+        "cellIndex",
+        cellIndex
+      );
       if (isNaN(cellValue)) {
         cellValue = cellValue.replace(/_x000d_/g, "").replace(/\s\s+/g, " ");
       }
-      html += `<td   style="${bold}  ">${cellValue}</td>`;
+      // Question data starts at row 7
+      if (rowIndex >= 7 && cellIndex === 2) {
+        const maxPoints = worksheet.getRow(rowIndex).getCell(3).value;
+
+        if (cellValue === maxPoints) {
+          classNames.push("td_green");
+        } else {
+          classNames.push("td_red");
+        }
+      }
+
+      html += `<td class="${classNames.join(" ")}">${cellValue}</td>`;
     });
+    // fix missing tds
     if (columnCounter <= columns.length) {
       for (let i = columnCounter; i < columns.length; i++) {
         html += `<td></td>`;
