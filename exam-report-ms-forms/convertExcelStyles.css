@@ -1,3 +1,7 @@
+/*
+ color: #ff6b6b; /* Emphasize feedback column 
+ color: #2388c6; /* Use blue for results 
+ */
 body {
   padding: 24px;
   background-color: #f5f7fa;
@@ -48,32 +52,13 @@ tr:nth-child(odd) {
   background-color: white;
 }
 
-/* Column Specific Styling */
-td:last-child {
-  color: #ff6b6b; /* Emphasize feedback column */
-}
-
-tr:nth-child(1) td,
-tr:nth-child(3) td {
-  font-size: 18px !important;
-}
-
-tr:nth-child(1) td:last-child,
-tr:nth-child(3) td:last-child {
-  color: #2388c6; /* Use blue for results */
-}
-
-tr:nth-child(6) {
-  font-style: italic;
-}
-
 /* Footer Styling */
 .footer {
   text-align: center;
   padding: 16px;
   background-color: #f1f1f1;
   margin-top: 20px;
-  font-size: 12px;
+  font-size: 14px;
   color: #666;
 }
 
@@ -97,4 +82,14 @@ tr:nth-child(6) {
 }
 .td_underline {
   text-decoration: underline;
+}
+.tr_italic td {
+  font-style: italic;
+}
+.tr_large td {
+  font-size: 18px;
+}
+.summaryTable {
+  width: 50%;
+  margin: auto;
 }

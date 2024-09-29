@@ -9,9 +9,9 @@
 #EXCEL_SOURCE_FILE="ICT Modul 324 - Prüfung 1 Teil A.xlsx"
 #MAX_POINTS=37
 
-FOLDER="pruefung_m324_ims22d"
-EXCEL_SOURCE_FILE="ICT Modul 324 - Prüfung 1 Teil A.xlsx"
-MAX_POINTS=37
+FOLDER="pruefung_m290_MMA22"
+EXCEL_SOURCE_FILE="ICT Modul 290 - Prüfung.xlsx"
+MAX_POINTS=42
 # Variables
 JSON_FILE="temp.json"
 SCRIPT1="parseQuestions.js"

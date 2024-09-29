@@ -52,60 +52,69 @@ function testJsonMatch(excelData, jsonData) {
   }
 }
 
-/*
 function swapNameOrder(name) {
   const nameParts = name.split(" ");
   const surname = nameParts.pop();
   return `${surname} ${nameParts.join(" ")}`;
-}*/
+}
 
 function normalizeData(row, jsonData) {
   const result = [];
   const keys = Object.keys(row);
 
+  const userData = {
+    "E-Mail": row[keys[3]],
+    Name: swapNameOrder(row[keys[4]]),
+    Gesamtpunktzahl: row[keys[5]],
+  };
   jsonData.questions.forEach((question, idx) => {
     // offset by 9 for first question, always 3 columns per question
     const excelQuestionOffset = EXCEL_QUESTION_OFFSET + idx * 3;
-
-    let points = row[keys[excelQuestionOffset + 1]];
-    let feedback = row[keys[excelQuestionOffset + 2]];
-
-    // points and feedback columns can be switched
-    // if points is a number and not a longer string
-    if (isNaN(points) || points.length > 4) {
-      let tempPoints = points;
-      points = feedback;
-      feedback = tempPoints;
+    let points = 0;
+    let feedback = "";
+    const columns = Object.keys(row);
+    let pointsCol = columns[excelQuestionOffset + 1];
+    if (pointsCol.startsWith("Punkte")) {
+      points = row[keys[excelQuestionOffset + 1]];
+      feedback = row[keys[excelQuestionOffset + 2]];
+    } else {
+      points = row[keys[excelQuestionOffset + 2]];
+      feedback = row[keys[excelQuestionOffset + 1]];
     }
 
-    // don't print points as feedback, only text
-    feedback = feedback.length > 4 ? feedback : "";
-
     result.push({
-      title: "(" + (idx + 1) + ") " + Object.keys(row)[excelQuestionOffset],
-      answer: row[keys[excelQuestionOffset]],
-      points: parseFloat(points),
+      title: `(${idx + 1}) ${normalizeContent(Object.keys(row)[excelQuestionOffset])}`,
+      answer: normalizeContent(row[keys[excelQuestionOffset]]),
+      points: points,
       maxPoints: question.Point,
-      feedback: feedback,
+      feedback: normalizeContent(feedback),
     });
   });
-  console.log("result", result);
-  return result;
+  return {
+    questionData: result,
+    userData: userData,
+  };
 }
 
-// Main function
-async function main() {
+function normalizeContent(content) {
+  content = content + "";
+  content = content.replace(/_x000d_/g, "").replace(/\s\s+/g, " ");
+  content = content.replace(/<\/?[^>]+(>|$)/g, "");
+  return content;
+}
+
+function main() {
   const jsonData = readJson(JSON_FILE);
   const excelData = excelToJson(EXCEL_SOURCE_FILE);
   testJsonMatch(excelData, jsonData);
 
-  for (let [idx, row] of excelData.entries()) {
-    row = normalizeData(row, jsonData, excelData);
+  for (let [idx, questionData] of excelData.entries()) {
+    const result = normalizeData(questionData, jsonData);
 
     writeHtmlReport(
-      path.basename(excelPath),
-      row,
-
+      EXCEL_SOURCE_FILE.replace(".xlsx", ""),
+      result.questionData,
+      result.userData,
       OUTPUT_FILE_PATH,
       MAX_POINTS
     );

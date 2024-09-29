@@ -1,4 +1,3 @@
-const excelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
 
@@ -8,7 +7,10 @@ const cssContent = fs.readFileSync(cssFilePath, "utf-8");
 function formatExamTitle(examTitle) {
   return `<h2>${examTitle.replace(".xlsx", "")} - ${new Date().getFullYear()}</h2>`;
 }
-
+function computeNoteValue(totalPoints, maxPointsTotal) {
+  let result = (5 / maxPointsTotal) * totalPoints + 1;
+  return Math.round(result * 4) / 4;
+}
 function formatFooter(examTitle) {
   return `
     <footer class="footer">
@@ -20,8 +22,8 @@ function formatFooter(examTitle) {
 
 function addTableHeaders() {
   return `
-    <tr>
-      <td>Frage</td>
+    <tr class="tr_italic">
+      <td >Frage</td>
       <td>Punkte</td>
       <td>Max Punkte</td>
       <td>Ihre Antwort</td>
@@ -29,76 +31,65 @@ function addTableHeaders() {
     </tr>`;
 }
 
-function addUserInfoRow(df, rowIndex, maxPoints) {
+function addSummary(userData, maxPointsTotal) {
+  const grade = computeNoteValue(userData["Gesamtpunktzahl"], maxPointsTotal);
+  console.log(userData.Name, grade);
   return `
-    <tr><td>Name</td><td>${df[rowIndex]["Name"]}</td></tr>
-    <tr><td>E-Mail</td><td>${df[rowIndex]["E-Mail"]}</td></tr>
-    <tr>
-      <td>Total</td><td>${df[rowIndex]["Gesamtpunktzahl"]} von ${maxPoints} Punkten <br><br>
-        <span class="td_underline">Note: ${computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])}</span>
+  <table class="summaryTable">
+    <tr class="tr_large"><td class="td_bold" >Name</td><td>${userData["Name"]}</td></tr>
+    <tr><td>E-Mail</td><td>${userData["E-Mail"]}</td></tr>
+    <tr class="tr_large">
+      <td class="td_bold">Total</td><td>${userData["Gesamtpunktzahl"]} von ${maxPointsTotal} Punkten <br><br>
+        <span class="td_underline">
+          Note: ${grade}
+        </span>
       </td>
-    </tr>`;
+    </tr> </table>`;
 }
 
-function generateTableRows(excelData) {
+function generateTableRows(questionData) {
   let html = "";
-  excelData.forEach((question) => {
+  questionData.forEach((question) => {
+    const hasErrors = Number(question.points) !== Number(question.maxPoints);
+
     html += `
       <tr>
         <td>${question.title}</td>
-        <td>${question.points > 0 ? question.points : "0"}</td>
+        <td class="${hasErrors ? "td_red" : "td_green"}">${question.points}</td>
         <td>${question.maxPoints}</td>
-        <td>${question.answer}</td>
-        <td>${question.feedback}</td>
+        <td>${question.feedback.length > 3 || hasErrors ? question.answer : ""}</td>
+        <td class="${hasErrors ? "td_red" : "td_green"}">${question.feedback}</td>
       </tr>`;
   });
   return html;
 }
 
-function generateHtmlFromWorksheet(worksheet, examTitle) {
-  let html = formatExamTitle(examTitle);
-  html += `<table>`;
-  html += addTableHeaders();
-  html += generateTableRows(worksheet); // Assuming `worksheet` is structured to represent questions.
-  html += `</table>`;
-  html += formatFooter(examTitle);
-  return html;
-}
-
 function writeHtmlToFile(htmlContent, outputFilePath) {
-  fs.writeFileSync(outputFilePath, htmlContent);
+  fs.writeFileSync(outputFilePath + ".html", htmlContent);
 }
 
 // Function to generate and write the HTML report
 function writeHtmlReport(
   examTitle,
-  rowData,
-  jsonData,
+  questionData,
+  userData,
   outputFilePath,
-  maxPoints,
   maxPointsTotal
 ) {
   let html = `
-    ${cssContent}
+    <style>${cssContent}</style>  
     ${formatExamTitle(examTitle)}
-    <table>`;
+    `;
 
-  html += addUserInfoRow(df, rowIndex, maxPoints, computeNoteValue);
+  html += addSummary(userData, maxPointsTotal);
 
-  // Add two empty rows after user info
-  html += `<tr><td></td></tr><tr><td></td></tr>`;
+  html += "<table>" + addTableHeaders();
 
-  html += addTableHeaders();
+  html += generateTableRows(questionData) + "</table>";
 
-  html += generateTableRows(excelData);
-
-  html += `</table>`;
   html += formatFooter(examTitle);
 
-  writeHtmlToFile(html, outputFilePath);
+  writeHtmlToFile(html, outputFilePath + `_${userData.Name}`);
 }
-function computeNoteValue(totalPoints) {
-  let result = (5 / MAX_POINTS) * totalPoints + 1;
-  return Math.round(result * 4) / 4;
-}
+
 module.exports = { writeHtmlReport };
