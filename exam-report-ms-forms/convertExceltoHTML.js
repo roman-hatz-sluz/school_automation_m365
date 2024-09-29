@@ -1,88 +1,104 @@
 const excelJS = require("exceljs");
 const fs = require("fs");
+const path = require("path");
 
-const convertExcelStyleSheet = require("./convertExcelStyleSheet");
+const cssFilePath = path.join(__dirname, "convertExcelStyles.css");
+const cssContent = fs.readFileSync(cssFilePath, "utf-8");
 
-async function convertExceltoHTML(excelPath, outputFilePath, examTitle) {
-  const workbook = new excelJS.Workbook();
-  await workbook.xlsx.readFile(excelPath);
-
-  const worksheet = workbook.getWorksheet(1); // or workbook.getWorksheet('Sheet1')
-
-  // wait for a little for IO
-  await new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 1000);
-  });
-  await workbook.xlsx.writeFile(excelPath);
-
-  generateHtmlFromExcel(worksheet, examTitle, outputFilePath);
+function formatExamTitle(examTitle) {
+  return `<h2>${examTitle.replace(".xlsx", "")} - ${new Date().getFullYear()}</h2>`;
 }
 
-// Helper function to generate HTML from an Excel worksheet
-function generateHtmlFromExcel(worksheet, examTitle = "", outputFilePath) {
-  let html = `
-  <h2>${examTitle.replace(".xlsx", "")} - ${new Date().getFullYear()}</h2> 
-  ${convertExcelStyleSheet}<table>`;
-  const columns = ["Frage", "Punkte", "Max Punkte", "Ihre Antwort", "Feedback"];
-  worksheet.eachRow({ includeEmpty: true }, (row, rowIndex) => {
-    html += `<tr>`;
-    let columnCounter = 0;
+function formatFooter(examTitle) {
+  return `
+    <footer class="footer">
+      <p>${examTitle.replace(".xlsx", "")} - Lehrperson: Roman Hatz 2024/2025</p>
+      <p>${new Date().toLocaleString("de")}</p>
+      <p>MS PDF Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
+    </footer>`;
+}
 
-    row.eachCell({ includeEmpty: true }, (cell, cellIndex) => {
-      let classNames = [];
-      columnCounter++;
-      // bold for result rows
+function addTableHeaders() {
+  return `
+    <tr>
+      <td>Frage</td>
+      <td>Punkte</td>
+      <td>Max Punkte</td>
+      <td>Ihre Antwort</td>
+      <td>Feedback</td>
+    </tr>`;
+}
 
-      if (rowIndex === 1 || rowIndex === 3) {
-        classNames.push("td_bold");
-      }
-      // normalize
-      let cellValue = cell.value || ""; // Ensure empty cells are rendered as empty
+function addUserInfoRow(df, rowIndex, maxPoints) {
+  return `
+    <tr><td>Name</td><td>${df[rowIndex]["Name"]}</td></tr>
+    <tr><td>E-Mail</td><td>${df[rowIndex]["E-Mail"]}</td></tr>
+    <tr>
+      <td>Total</td><td>${df[rowIndex]["Gesamtpunktzahl"]} von ${maxPoints} Punkten <br><br>
+        <span class="td_underline">Note: ${computeNoteValue(df[rowIndex]["Gesamtpunktzahl"])}</span>
+      </td>
+    </tr>`;
+}
 
-      console.log(
-        "cellValue",
-        cellValue,
-        "rowIndex",
-        rowIndex,
-        "cellIndex",
-        cellIndex
-      );
-      if (isNaN(cellValue)) {
-        cellValue = cellValue.replace(/_x000d_/g, "").replace(/\s\s+/g, " ");
-      }
-      // Question data starts at row 7
-      if (rowIndex >= 7 && cellIndex === 2) {
-        const maxPoints = worksheet.getRow(rowIndex).getCell(3).value;
-
-        if (cellValue === maxPoints) {
-          classNames.push("td_green");
-        } else {
-          classNames.push("td_red");
-        }
-      }
-
-      html += `<td class="${classNames.join(" ")}">${cellValue}</td>`;
-    });
-    // fix missing tds
-    if (columnCounter <= columns.length) {
-      for (let i = columnCounter; i < columns.length; i++) {
-        html += `<td></td>`;
-      }
-    }
-    html += `</tr>`;
+function generateTableRows(excelData) {
+  let html = "";
+  excelData.forEach((question) => {
+    html += `
+      <tr>
+        <td>${question.title}</td>
+        <td>${question.points > 0 ? question.points : "0"}</td>
+        <td>${question.maxPoints}</td>
+        <td>${question.answer}</td>
+        <td>${question.feedback}</td>
+      </tr>`;
   });
-
-  html += `</table>
-  <footer class="footer">
-    <p>${examTitle.replace(".xlsx", "")} - Lehrperson: Roman Hatz 2024/2025</p>
-    <p>${new Date().toLocaleString("de")}</p>
-    <p>MS PDF Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
-    </footer>
-`;
-  fs.writeFileSync(outputFilePath, html);
   return html;
 }
 
-module.exports = { convertExceltoHTML };
+function generateHtmlFromWorksheet(worksheet, examTitle) {
+  let html = formatExamTitle(examTitle);
+  html += `<table>`;
+  html += addTableHeaders();
+  html += generateTableRows(worksheet); // Assuming `worksheet` is structured to represent questions.
+  html += `</table>`;
+  html += formatFooter(examTitle);
+  return html;
+}
+
+function writeHtmlToFile(htmlContent, outputFilePath) {
+  fs.writeFileSync(outputFilePath, htmlContent);
+}
+
+// Function to generate and write the HTML report
+function writeHtmlReport(
+  examTitle,
+  rowData,
+  jsonData,
+  outputFilePath,
+  maxPoints,
+  maxPointsTotal
+) {
+  let html = `
+    ${cssContent}
+    ${formatExamTitle(examTitle)}
+    <table>`;
+
+  html += addUserInfoRow(df, rowIndex, maxPoints, computeNoteValue);
+
+  // Add two empty rows after user info
+  html += `<tr><td></td></tr><tr><td></td></tr>`;
+
+  html += addTableHeaders();
+
+  html += generateTableRows(excelData);
+
+  html += `</table>`;
+  html += formatFooter(examTitle);
+
+  writeHtmlToFile(html, outputFilePath);
+}
+function computeNoteValue(totalPoints) {
+  let result = (5 / MAX_POINTS) * totalPoints + 1;
+  return Math.round(result * 4) / 4;
+}
+module.exports = { writeHtmlReport };

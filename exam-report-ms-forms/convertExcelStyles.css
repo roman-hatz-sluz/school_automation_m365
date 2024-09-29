@@ -1,14 +1,13 @@
-const style = `<style>
 body {
   padding: 24px;
-  background-color: #f5f7fa;  
+  background-color: #f5f7fa;
   font-family: "Roboto", sans-serif;
-  line-height: 1.6;  
-  color: #333;  
+  line-height: 1.6;
+  color: #333;
 }
 
 h2 {
-  color: #2388c6;  
+  color: #2388c6;
   font-size: 24px;
   margin-bottom: 20px;
   text-align: center;
@@ -17,26 +16,26 @@ h2 {
 table {
   border-collapse: collapse;
   width: 100%;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);  
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin: 20px 0;
   background-color: white;
-  border-radius: 8px;  
+  border-radius: 8px;
   overflow: hidden;
 }
 
 th,
 td {
-  padding: 16px;  
+  padding: 16px;
   text-align: left;
   border: 1px solid #ddd;
-  font-size: 14px;  
+  font-size: 14px;
 }
 
 th {
-  background-color: #2388c6; 
+  background-color: #2388c6;
   color: white;
   text-transform: uppercase;
-  letter-spacing: 1px;  
+  letter-spacing: 1px;
   font-weight: 500;
 }
 
@@ -55,7 +54,7 @@ td:last-child {
 }
 
 tr:nth-child(1) td,
-tr:nth-child(3) td  {
+tr:nth-child(3) td {
   font-size: 18px !important;
 }
 
@@ -96,6 +95,6 @@ tr:nth-child(6) {
 .td_bold {
   font-weight: bold;
 }
-
-</style>`;
-module.exports = style;
+.td_underline {
+  text-decoration: underline;
+}
