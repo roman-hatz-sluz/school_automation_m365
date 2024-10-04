@@ -9,6 +9,7 @@ function formatExamTitle(examTitle) {
 }
 function computeNoteValue(totalPoints, maxPointsTotal) {
   let result = (5 / maxPointsTotal) * totalPoints + 1;
+
   return Math.round(result * 4) / 4;
 }
 function formatFooter(examTitle) {
@@ -37,7 +38,7 @@ function addSummary(userData, maxPointsTotal) {
   return `
   <table class="summaryTable">
     <tr class="tr_large"><td class="td_bold" >Name</td><td>${userData["Name"]}</td></tr>
-    <tr><td>E-Mail</td><td>${userData["E-Mail"]}</td></tr>
+    <tr><td data-email="${userData["E-Mail"]}">E-Mail</td><td>${userData["E-Mail"]}</td></tr>
     <tr class="tr_large">
       <td class="td_bold">Total</td><td>${userData["Gesamtpunktzahl"]} von ${maxPointsTotal} Punkten <br><br>
         <span class="td_underline">
@@ -47,20 +48,29 @@ function addSummary(userData, maxPointsTotal) {
     </tr> </table>`;
 }
 
-function generateTableRows(questionData) {
+function generateTableRows(questionData, userData) {
   let html = "";
+  let controlCount = 0;
   questionData.forEach((question) => {
     const hasErrors = Number(question.points) !== Number(question.maxPoints);
-
+    controlCount += question.points;
     html += `
       <tr>
         <td>${question.title}</td>
         <td class="${hasErrors ? "td_red" : "td_green"}">${question.points}</td>
         <td>${question.maxPoints}</td>
-        <td>${question.feedback.length > 3 || hasErrors ? question.answer : ""}</td>
+        <td>${question.feedback.length > 3 ? question.answer : ""}</td>
         <td class="${hasErrors ? "td_red" : "td_green"}">${question.feedback}</td>
       </tr>`;
   });
+  if (controlCount !== userData.Gesamtpunktzahl) {
+    console.error(
+      "Points count does not match: ",
+      controlCount,
+      userData.Gesamtpunktzahl
+    );
+  }
+
   return html;
 }
 
@@ -85,7 +95,7 @@ function writeHtmlReport(
 
   html += "<table>" + addTableHeaders();
 
-  html += generateTableRows(questionData) + "</table>";
+  html += generateTableRows(questionData, userData) + "</table>";
 
   html += formatFooter(examTitle);
 

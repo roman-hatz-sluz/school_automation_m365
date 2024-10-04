@@ -99,7 +99,7 @@ function normalizeData(row, jsonData) {
 function normalizeContent(content) {
   content = content + "";
   content = content.replace(/_x000d_/g, "").replace(/\s\s+/g, " ");
-  content = content.replace(/<\/?[^>]+(>|$)/g, "");
+  // content = content.replace(/<\/?[^>]+(>|$)/g, "");
   return content;
 }
 
