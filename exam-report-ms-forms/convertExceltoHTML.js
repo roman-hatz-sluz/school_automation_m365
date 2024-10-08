@@ -37,12 +37,13 @@ function addSummary(userData, maxPointsTotal) {
   console.log(userData.Name, grade);
   return `
   <table class="summaryTable">
-    <tr class="tr_large"><td class="td_bold" >Name</td><td>${userData["Name"]}</td></tr>
+    <tr class="tr_large">
+      <td data-name="${userData["Name"]}" class="td_bold">Name</td><td>${userData["Name"]}</td></tr>
     <tr><td data-email="${userData["E-Mail"]}">E-Mail</td><td>${userData["E-Mail"]}</td></tr>
     <tr class="tr_large">
       <td class="td_bold">Total</td><td>${userData["Gesamtpunktzahl"]} von ${maxPointsTotal} Punkten <br><br>
         <span class="td_underline">
-          Note: ${grade}
+          Note: <span data-grade="${grade}">${grade}</span>
         </span>
       </td>
     </tr> </table>`;
