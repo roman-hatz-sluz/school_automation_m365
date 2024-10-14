@@ -2,7 +2,10 @@ const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
 const { parser } = require("./convertExcelArgs");
-const { writeHtmlReport } = require("./convertExceltoHTML");
+const {
+  writeHtmlReport,
+  writeGradeOverviewsToFile,
+} = require("./convertExceltoHTML");
 
 const args = parser.parse_args();
 const EXCEL_SOURCE_PATH = args.excel_source_path;
@@ -10,6 +13,7 @@ const EXCEL_SOURCE_FILE = args.excel_source_file;
 const MAX_POINTS = args.max_points;
 const JSON_FILE = "temp.json";
 const OUTPUT_FILE_PATH = `${EXCEL_SOURCE_PATH}/responses/${EXCEL_SOURCE_FILE.replace(".xlsx", "")}`;
+const GRADES_REPORT_OUTPUT_FILE_PATH = `${EXCEL_SOURCE_PATH}/Notenblatt`;
 const EXCEL_QUESTION_OFFSET = 8;
 
 function readJson(filePath) {
@@ -119,6 +123,8 @@ function main() {
       MAX_POINTS
     );
   }
+
+  writeGradeOverviewsToFile(GRADES_REPORT_OUTPUT_FILE_PATH);
 }
 
 if (require.main === module) {

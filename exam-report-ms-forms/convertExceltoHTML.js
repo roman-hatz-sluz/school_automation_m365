@@ -3,7 +3,7 @@ const path = require("path");
 
 const cssFilePath = path.join(__dirname, "convertExcelStyles.css");
 const cssContent = fs.readFileSync(cssFilePath, "utf-8");
-
+let gradesCSV = "Name;Grade\n";
 function formatExamTitle(examTitle) {
   return `<h2>${examTitle.replace(".xlsx", "")} - ${new Date().getFullYear()}</h2>`;
 }
@@ -34,7 +34,8 @@ function addTableHeaders() {
 
 function addSummary(userData, maxPointsTotal) {
   const grade = computeNoteValue(userData["Gesamtpunktzahl"], maxPointsTotal);
-  console.log(userData.Name, grade);
+  gradesCSV += userData.Name + ";" + grade + "\n";
+
   return `
   <table class="summaryTable">
     <tr class="tr_large">
@@ -78,6 +79,9 @@ function generateTableRows(questionData, userData) {
 function writeHtmlToFile(htmlContent, outputFilePath) {
   fs.writeFileSync(outputFilePath + ".html", htmlContent);
 }
+function writeGradeOverviewsToFile(outputFilePath) {
+  fs.writeFileSync(outputFilePath + ".csv", gradesCSV);
+}
 
 // Function to generate and write the HTML report
 function writeHtmlReport(
@@ -103,4 +107,4 @@ function writeHtmlReport(
   writeHtmlToFile(html, outputFilePath + `_${userData.Name}`);
 }
 
-module.exports = { writeHtmlReport };
+module.exports = { writeHtmlReport, writeGradeOverviewsToFile };
