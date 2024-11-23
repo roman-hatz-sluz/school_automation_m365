@@ -49,9 +49,7 @@ function getQuestionCountFromExcel(excelData) {
 function testJsonMatch(excelData, jsonData) {
   if (getQuestionCountFromExcel(excelData) !== jsonData.questions.length) {
     throw Error(
-      "json file question match: excel vs json:",
-      getQuestionCountFromExcel(excelData),
-      jsonData.questions.length
+      `json file question match: excel (${getQuestionCountFromExcel(excelData)}) vs json (${jsonData.questions.length}) :`
     );
   }
 }
