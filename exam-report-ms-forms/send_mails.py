@@ -1,5 +1,5 @@
 # python3 send_mails.py ./pruefung_test/responses
-# problem: auto send mode does not work: attachment is missing. 
+# send manually. problem: auto send mode does not work: attachment is missing. 
 
 import os
 import subprocess
@@ -7,7 +7,7 @@ import time
 import sys
 from bs4 import BeautifulSoup
 
-examTitle="Modul M324 - DevOps - Prüfung 1 (MS Forms) - 2024"
+examTitle="Modul M324 - DevOps - Prüfung 2 - 2024"
 
 def create_draft_with_attachment(subject, recipient, content, attachment_path):
     attachment_path = os.path.abspath(attachment_path)
@@ -68,19 +68,19 @@ def process_html_files_in_directory(directory_path, draft_mode=True):
 
             # Define a dictionary for entertaining grade descriptions in German
             grade_descriptions = {
-                6.00: "Sehr gut - „Wer hohe Türme bauen will, muss lange am Fundament verweilen.“ – Anton Bruckner 💻🚀",
-                5.75: "Hervorragend - „Perfektion ist nicht dann erreicht, wenn man nichts mehr hinzufügen kann, sondern wenn man nichts mehr weglassen kann.“ – Antoine de Saint-Exupéry 🔄⚙️",
-                5.50: "Hervorragend - „Es ist nicht genug, zu wissen – man muss auch anwenden. Es ist nicht genug, zu wollen – man muss auch tun.“ – Johann Wolfgang von Goethe 🧠💡",
-                5.25: "Gut bis sehr gut - „Der Fortschritt lebt vom Austausch des Wissens.“ – Albert Einstein 🖥️👌",
-                5.00: "Gut - „Ordnung ist das halbe Leben.“ – Sprichwort 💾👍",
-                4.75: "Okay bis gut - „Man kann nicht immer gewinnen, aber man kann immer dazulernen.“ – Unbekannt 🔧🛠️",
-                4.50: "Okay - „Es ist nicht wenig Zeit, die wir haben, sondern viel Zeit, die wir nicht nutzen.“ – Seneca 🛠️⌛",
-                4.25: "Genügend - „Der Weg ist das Ziel.“ – Konfuzius 🧐✅",
-                4.00: "Genügend - „Man muss das Unmögliche versuchen, um das Mögliche zu erreichen.“ – Hermann Hesse 🐞🚧",
-                3.75: "Ungenügend - „Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren.“ – Bertolt Brecht 🛑❌",
-                3.50: "Ungenügend - „Der Fehler ist der beste Lehrer.“ – Unbekannt 🐛🔍",
-                3.25: "Schwach - „Auch aus Steinen, die einem in den Weg gelegt werden, kann man Schönes bauen.“ – Johann Wolfgang von Goethe 😓❌",
-                3.00: "Schwach - „Es irrt der Mensch, solang er strebt.“ – Johann Wolfgang von Goethe 💥❌",
+                6.00: "Sehr gut - „Programs must be written for people to read, and only incidentally for machines to execute.“ – Harold Abelson 💻🚀",
+                5.75: "Hervorragend - „The best way to predict the future is to invent it.“ – Alan Kay 🔮⚙️",
+                5.50: "Hervorragend - „Simplicity is the soul of efficiency.“ – Austin Freeman 🧠💡",
+                5.25: "Gut bis sehr gut - „Progress is made by lazy people looking for easier ways to do things.“ – Robert A. Heinlein 🖥️👌",
+                5.00: "Gut - „Talk is cheap. Show me the code.“ – Linus Torvalds 💾👍",
+                4.75: "Okay bis gut - „If debugging is the process of removing bugs, then programming must be the process of putting them in.“ – Edsger Dijkstra 🔧🛠️",
+                4.50: "Okay - „The computer was born to solve problems that did not exist before.“ – Bill Gates 🛠️⌛",
+                4.25: "Genügend - „Bad code can always be improved. No code lives forever.“ – Bjarne Stroustrup 🧐✅",
+                4.00: "Genügend - „It’s not that we use technology, we live technology.“ – Godfrey Reggio 🐞🚧",
+                3.75: "Ungenügend - „In theory, there is no difference between theory and practice. In practice, there is.“ – Yogi Berra 🛑❌",
+                3.50: "Ungenügend - „Errors should never pass silently. Unless explicitly silenced.“ – Zen of Python 🐛🔍",
+                3.25: "Schwach - „Programs are meant to be read by humans and only incidentally for computers to execute.“ – Harold Abelson 😓❌",
+                3.00: "Schwach - „The only way to go fast is to go well.“ – Robert C. Martin 💥❌",
             }
 
             # Check if the rounded grade is below 3

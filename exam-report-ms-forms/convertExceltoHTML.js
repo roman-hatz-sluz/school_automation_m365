@@ -17,7 +17,7 @@ function formatFooter(examTitle) {
     <footer class="footer">
       <p>${examTitle.replace(".xlsx", "")} - Lehrperson: Roman Hatz 2024/2025</p>
       <p>${new Date().toLocaleString("de")}</p>
-      <p>MS PDF Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
+      <p>MS Forms Report Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
     </footer>`;
 }
 

@@ -9,9 +9,22 @@
 #EXCEL_SOURCE_FILE="ICT Modul 324 - Prüfung 1 Teil A.xlsx"
 #MAX_POINTS=37
 
-FOLDER="pruefung_m290_MMA22"
-EXCEL_SOURCE_FILE="ICT Modul 290 - Prüfung.xlsx"
-MAX_POINTS=42
+#FOLDER="pruefung_m290_MMA22"
+#EXCEL_SOURCE_FILE="ICT Modul 290 - Prüfung.xlsx"
+#MAX_POINTS=42
+
+#FOLDER="pruefung2_m324_ims22d"
+#EXCEL_SOURCE_FILE="M324 - 2024 - Prüfung 2 - Docker_CI.CD_Git.xlsx"
+#MAX_POINTS=46
+
+#FOLDER="pruefung2_m324_ims22d_nachhol"
+#EXCEL_SOURCE_FILE="M324 - 2024 - Prüfung 2 Nachhol - Docker_CI.CD_Git.xlsx"
+#MAX_POINTS=50
+FOLDER="pruefung1_m324_ina"
+EXCEL_SOURCE_FILE="M324 - INA - 2024 - Prüfung 1a.xlsx"
+MAX_POINTS=34
+
+
 
 # Variables
 JSON_FILE="temp.json"
