@@ -2,4 +2,7 @@ secret.txt
 temp.json
 node_modules/
 responses/
+report_check_runtime/
+report_check/
 exam-report-ms-forms/pruefung*
+_2024/
