@@ -21,8 +21,8 @@
 #EXCEL_SOURCE_FILE="M324 - 2024 - Prüfung 2 Nachhol - Docker_CI.CD_Git.xlsx"
 #MAX_POINTS=50
 FOLDER="pruefung1_m324_ina"
-EXCEL_SOURCE_FILE="M324 - INA - 2024 - Prüfung 1a.xlsx"
-MAX_POINTS=34
+EXCEL_SOURCE_FILE="M324 - INA - 2024 - Prüfung 1.xlsx"
+MAX_POINTS=74
 
 
 

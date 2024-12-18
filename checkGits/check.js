@@ -21,17 +21,26 @@ async function runTests(baseFolder) {
     );
 
   for (const folderName of projectFolders) {
-    const report = [];
     const mocha = new Mocha();
 
     const addTest = (title, fn) =>
       mocha.suite.addTest(new Mocha.Test(title, fn));
 
+    const addCommitMessageTests = (expectedCommits) => {
+      expectedCommits.forEach((commit) => {
+        addTest(`Check commit message: ${commit}`, () => {
+          const logOutput = execSync("git log --pretty=format:%s", {
+            cwd: projectFolder,
+            encoding: "utf-8",
+          });
+          if (!logOutput.includes(commit)) {
+            throw new Error(`Missing commit message: ${commit}`);
+          }
+        });
+      });
+    };
     const checkFileExists = (filePath, successMsg, errorMsg) => {
-      if (fs.existsSync(filePath)) {
-        report.push(`## [PASS] ${successMsg}`);
-      } else {
-        report.push(`## [FAIL] ${errorMsg}`);
+      if (!fs.existsSync(filePath)) {
         throw new Error(errorMsg);
       }
     };
@@ -39,35 +48,23 @@ async function runTests(baseFolder) {
     const projectFolder = path.join(baseFolderPath, folderName);
     const getFile = (filename) => path.join(projectFolder, filename);
 
-    report.push(`# Processing folder: ${folderName}`);
-
     try {
-      addTest(`${folderName} - Validate repository name`, () => {
+      addTest(`Validate repository name`, () => {
         const isValid = /^pruefung_m324_\w+_\w+$/.test(folderName);
-        report.push(
-          isValid
-            ? "## [PASS] Repository name matches the specified format."
-            : "## [FAIL] Repository name does not match the specified format."
-        );
         if (!isValid) throw new Error("Repository name format mismatch");
       });
 
-      addTest(`${folderName} - Check if main branch exists`, () => {
+      addTest(`Check if main branch exists`, () => {
         const branches = execSync("git branch -r", {
           cwd: projectFolder,
           encoding: "utf-8",
         });
-        if (branches.includes("origin/main")) {
-          report.push("## [PASS] Main branch exists in the repository.");
-        } else {
-          report.push(
-            "## [FAIL] Main branch does not exist in the repository."
-          );
+        if (!branches.includes("origin/main")) {
           throw new Error("Main branch missing");
         }
       });
 
-      addTest(`${folderName} - Check README.md exists`, () =>
+      addTest(`Check README.md exists`, () =>
         checkFileExists(
           getFile("README.md"),
           "README.md exists.",
@@ -75,7 +72,7 @@ async function runTests(baseFolder) {
         )
       );
 
-      addTest(`${folderName} - Check .gitignore contains node_modules`, () => {
+      addTest(`Check .gitignore contains node_modules`, () => {
         const gitignorePath = getFile(".gitignore");
         checkFileExists(
           gitignorePath,
@@ -84,13 +81,11 @@ async function runTests(baseFolder) {
         );
         const content = fs.readFileSync(gitignorePath, "utf-8");
         if (!content.includes("node_modules")) {
-          report.push("## [FAIL] .gitignore does not contain node_modules.");
           throw new Error(".gitignore missing node_modules entry");
         }
-        report.push("## [PASS] .gitignore contains node_modules.");
       });
 
-      addTest(`${folderName} - Check package.json exists`, () =>
+      addTest(`Check package.json exists`, () =>
         checkFileExists(
           getFile("package.json"),
           "package.json exists.",
@@ -98,135 +93,144 @@ async function runTests(baseFolder) {
         )
       );
 
-      addTest(`${folderName} - Execute index.js`, () => {
-        const output = execSync("node index.js", {
+      addTest(`Execute index.js`, () => {
+        execSync("node index.js", {
           cwd: projectFolder,
           encoding: "utf-8",
         });
-        report.push(`## [PASS] Index.js executed successfully:  `);
-        report.push(`### Output\n${output.trim()}\n`);
       });
 
-      addTest(`${folderName} - Check required packages are installed`, () => {
+      addTest(`Check required packages are installed`, () => {
         const output = execSync("npm list chalk prettier eslint", {
           cwd: projectFolder,
           encoding: "utf-8",
         });
         ["eslint", "chalk", "prettier"].forEach((pkg) => {
-          if (output.includes(pkg)) {
-            report.push(`## [PASS] ${pkg} is installed.`);
-          } else {
-            report.push(`## [FAIL] ${pkg} is not installed.`);
+          if (!output.includes(pkg)) {
             throw new Error(`${pkg} not installed`);
           }
         });
       });
 
-      addTest(`${folderName} - Check formatting with Prettier`, () => {
+      addTest(`Check eslint and prettier in devDependencies`, () => {
+        const packageJsonPath = getFile("package.json");
+        checkFileExists(
+          packageJsonPath,
+          "package.json exists for dependency checks.",
+          "package.json is missing for dependency checks."
+        );
+        const packageJson = JSON.parse(
+          fs.readFileSync(packageJsonPath, "utf-8")
+        );
+        const devDependencies = packageJson.devDependencies || {};
+        ["eslint", "prettier"].forEach((pkg) => {
+          if (!devDependencies[pkg]) {
+            throw new Error(`${pkg} missing in devDependencies`);
+          }
+        });
+      });
+
+      addTest(`Check chalk in dependencies`, () => {
+        const packageJsonPath = getFile("package.json");
+        checkFileExists(
+          packageJsonPath,
+          "package.json exists for dependency checks.",
+          "package.json is missing for dependency checks."
+        );
+        const packageJson = JSON.parse(
+          fs.readFileSync(packageJsonPath, "utf-8")
+        );
+        const dependencies = packageJson.dependencies || {};
+        if (!dependencies["chalk"]) {
+          throw new Error("chalk missing in dependencies");
+        }
+      });
+
+      addTest(`Check formatting with Prettier`, () => {
         execSync("npm run format-check", {
           cwd: projectFolder,
           encoding: "utf-8",
         });
-        report.push("## [PASS] Code formatting is correct.");
       });
 
-      addTest(`${folderName} - Check npm run test does not exist`, () => {
+      addTest(`Check npm run test does not exist`, () => {
         try {
           execSync("npm run test", {
             cwd: projectFolder,
             encoding: "utf-8",
             stdio: "pipe",
           });
-          report.push("## [FAIL] npm run test exists but should not.");
           throw new Error("npm run test exists");
         } catch (err) {
           const expectedError = 'npm ERR! Missing script: "test"';
           if (!err.message.includes(expectedError)) {
-            report.push("## [FAIL] Unexpected error for npm run test.");
             throw err;
           }
-          report.push(
-            "## [PASS] npm run test does not exist and produced the correct error."
-          );
         }
       });
 
-      addTest(
-        `${folderName} - Check origin/conflict-feature branch exists`,
-        () => {
-          const branches = execSync("git branch -r", {
-            cwd: projectFolder,
-            encoding: "utf-8",
-          });
-          if (branches.includes("origin/conflict-feature")) {
-            report.push(
-              "## [PASS] origin/conflict-feature branch exists in remote repository."
-            );
-          } else {
-            report.push(
-              "## [FAIL] origin/conflict-feature branch does not exist in remote repository."
-            );
-            throw new Error("origin/conflict-feature branch missing");
-          }
-        }
-      );
-
-      addTest(`${folderName} - Check for specified commit messages`, () => {
-        const logOutput = execSync("git log ", {
+      addTest(`Check origin/conflict-feature branch exists`, () => {
+        const branches = execSync("git branch -r", {
           cwd: projectFolder,
           encoding: "utf-8",
-        }).split("\n");
-        const expectedCommits = [
-          "first commit",
-          "test color log",
-          "build automation",
-          "linter test",
-          "linter fixed",
-          "formatter test",
-          "convert md to html",
-          "changed index.js in feature branch",
-          "changed index.js in main branch",
-          "This reverts commit",
-          "Merge pull request",
-        ];
-        const missingCommits = expectedCommits.filter(
-          (commit) => !logOutput.some((log) => log.includes(commit))
-        );
-        if (missingCommits.length) {
-          report.push(
-            `## [FAIL] Missing commit messages: ${missingCommits.join(", ")}`
-          );
-          throw new Error(
-            `Missing commit messages: ${missingCommits.join(", ")}`
-          );
+        });
+        if (!branches.includes("origin/conflict-feature")) {
+          throw new Error("origin/conflict-feature branch missing");
         }
-        report.push("## [PASS] All specified commit messages are present.");
       });
+      const expectedCommits = [
+        "first commit",
+        "test color log",
+        "build automation",
+        "linter test",
+        "linter fixed",
+        "formatter test",
+        "convert md to html",
+        "changed index.js in feature branch",
+        "changed index.js in main branch",
+        "Merge pull request",
+      ];
+      addCommitMessageTests(expectedCommits);
+
+      addTest(`Check task-3.md exists`, () =>
+        checkFileExists(
+          getFile("task-3.md"),
+          "task-3.md exists.",
+          "task-3.md is missing."
+        )
+      );
+      addTest(`Check task-3.html exists`, () =>
+        checkFileExists(
+          getFile("task-3.html"),
+          "task-3.html exists.",
+          "task-3.html is missing."
+        )
+      );
+      const reportFilePath = `${originalDir}/${RESPONSES_DIR}/${folderName.replace(
+        "pruefung_m324_",
+        ""
+      )}_report.md`;
+      const outputStream = fs.createWriteStream(reportFilePath);
 
       await new Promise((resolve) => {
         const runner = mocha.run((failures) => {
-          const totalTests = runner.stats.tests;
-          const passedTests = runner.stats.passes;
-          const failedTests = runner.stats.failures;
-
-          const summary = `# Test Summary\n\n- Total Tests: ${totalTests}\n- Passed: ${passedTests}\n- Failed: ${failedTests}\n`;
-
-          const reportFilePath = `${originalDir}/${RESPONSES_DIR}/${folderName}_check_report.md`;
-          fs.writeFileSync(
-            reportFilePath,
-            `${report.join("\n")}\n\n${summary}`,
-            "utf-8"
-          );
-
           console.log(`Report saved to ${reportFilePath}`);
           resolve();
+        });
+
+        runner.on("test end", (test) => {
+          outputStream.write(`${test.title}: ${test.state}\n`);
+        });
+
+        runner.on("end", () => {
+          outputStream.write(
+            `\nStats: ${runner.stats.passes} passed, ${runner.stats.failures} failed\n`
+          );
+          outputStream.end();
         });
       });
     } catch (err) {
       console.error(`Error processing folder '${folderName}': ${err.message}`);
-      const reportFilePath = `${originalDir}/${RESPONSES_DIR}/${folderName}_error_report.md`;
-      fs.writeFileSync(reportFilePath, report.join("\n"), "utf-8");
-      console.log(`Error report saved to ${reportFilePath}`);
     }
   }
 }

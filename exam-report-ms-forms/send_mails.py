@@ -1,5 +1,7 @@
-# python3 send_mails.py ./pruefung_test/responses
-# send manually. problem: auto send mode does not work: attachment is missing. 
+# COMMAND: python3 send_mails.py ./pruefung_test/responses
+
+# in mail app: login to account
+# send manually in mail app. problem: auto send mode does not work: attachment is missing. 
 
 import os
 import subprocess
@@ -7,7 +9,7 @@ import time
 import sys
 from bs4 import BeautifulSoup
 
-examTitle="Modul M324 - DevOps - Prüfung 2 - 2024"
+examTitle="Modul M324 - DevOps - Prüfung 1 - 2024"
 
 def create_draft_with_attachment(subject, recipient, content, attachment_path):
     attachment_path = os.path.abspath(attachment_path)
@@ -41,8 +43,20 @@ def create_and_send_email(subject, recipient, content, attachment_path):
     """
     subprocess.run(["osascript", "-e", applescript])
 
+def check_directory(directory_path):
+    files = os.listdir(directory_path)
+    if not files:
+        return "The directory is empty."
+    html_files = [file for file in files if file.endswith(".html")]
+    if not html_files:
+        return False
+    return True
+
 
 def process_html_files_in_directory(directory_path, draft_mode=True):
+    if not check_directory(directory_path):
+        print("No html files found")
+        return False
     for filename in os.listdir(directory_path):
         if filename.endswith(".html"):
             file_path = os.path.join(directory_path, filename)
@@ -137,6 +151,3 @@ if __name__ == "__main__":
     process_html_files_in_directory(folder_path, draft_mode)
 
 
-# in mail app: login to account
-# python3 send_mails.py /path/to/html/folder send
-# draft mode: python3 send_mails.py /path/to/html/folder

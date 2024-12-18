@@ -55,7 +55,7 @@ function generateTableRows(questionData, userData) {
   let controlCount = 0;
   questionData.forEach((question) => {
     const hasErrors = Number(question.points) !== Number(question.maxPoints);
-    controlCount += question.points;
+    controlCount += Number(question.points);
     html += `
       <tr>
         <td>${question.title}</td>
@@ -68,6 +68,7 @@ function generateTableRows(questionData, userData) {
   if (controlCount !== userData.Gesamtpunktzahl) {
     console.error(
       "Points count does not match: ",
+      userData.Name,
       controlCount,
       userData.Gesamtpunktzahl
     );

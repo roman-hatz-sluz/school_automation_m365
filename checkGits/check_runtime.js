@@ -85,7 +85,11 @@ const runNpmScriptsInFolders = async (baseFolder) => {
 };
 
 const writeReportToFile = (folderName) => {
-  const reportFilePath = `${originalDir}/${RESPONSES_DIR}/${folderName}_runtime_report.md`;
+  const reportFilePath =
+    `${originalDir}/${RESPONSES_DIR}/${folderName}_runtime_report.md`.replace(
+      "pruefung_m324_",
+      ""
+    );
   let summaryString = `Summary: ${summary.passed} passed, ${summary.failed} failed`;
   const content = `# ${folderName} \n\n# Summary\n${summaryString}\n\n\n# Report\n${report.join(
     "\n"
