@@ -10,6 +10,9 @@ This repository contains several separate applications for automating tasks rela
 
 3. **M365 CLI**: A command-line tool for managing various Microsoft 365 services and functionalities.
 
+4. **checkGits**: An application to check GitHub exam repositories with automated tests, streamlining the grading process for coding assignments.
+
+
 ## Installation and Usage
 
 ### Prerequisites
