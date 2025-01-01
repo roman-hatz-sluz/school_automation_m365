@@ -101,13 +101,16 @@ async function runTests(baseFolder) {
       });
 
       addTest(`Check required packages are installed`, () => {
-        const output = execSync("npm list chalk prettier eslint", {
+        const output = execSync("npm list --depth=0 --json", {
           cwd: projectFolder,
           encoding: "utf-8",
         });
+
+        const installedPackages = JSON.parse(output).dependencies || {};
+
         ["eslint", "chalk", "prettier"].forEach((pkg) => {
-          if (!output.includes(pkg)) {
-            throw new Error(`${pkg} not installed`);
+          if (!installedPackages[pkg]) {
+            throw new Error(`${pkg} not installed at the top level`);
           }
         });
       });
