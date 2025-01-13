@@ -3,11 +3,13 @@ import path from "path";
 import Mocha from "mocha";
 import { execSync } from "child_process";
 
-const RESPONSES_DIR = "report_check";
+const BASE_FOLDER = "pruefung_m324_1";
+const STUDENTS_CODE_FOLDER = BASE_FOLDER + "/responses";
+const RESPONSES_DIR = BASE_FOLDER + "/report_check";
 
-async function runTests(baseFolder) {
+async function runTests() {
   const originalDir = process.cwd();
-  const baseFolderPath = path.resolve(baseFolder);
+  const baseFolderPath = path.resolve(STUDENTS_CODE_FOLDER);
 
   if (!fs.existsSync(baseFolderPath)) {
     console.error(`Error: Folder '${baseFolderPath}' does not exist.`);
@@ -238,4 +240,4 @@ async function runTests(baseFolder) {
   }
 }
 
-runTests("responses");
+runTests();

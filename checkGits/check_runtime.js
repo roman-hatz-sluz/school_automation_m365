@@ -1,7 +1,10 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-const RESPONSES_DIR = "report_check_runtime";
+const BASE_FOLDER = "pruefung_m324_2";
+const STUDENTS_CODE_FOLDER = BASE_FOLDER + "/responses";
+const RESPONSES_DIR = BASE_FOLDER + "/report_check_runtime";
+const EXAM_BRANCH = "exam";
 
 let report = [];
 let summary = { passed: 0, failed: 0 };
@@ -22,6 +25,13 @@ const runNpmScriptsInFolders = async (baseFolder) => {
   const folders = fs.readdirSync(baseFolder);
 
   for (const folderName of folders) {
+    if (
+      folderName === ".DS_Store" ||
+      folderName === ".github" ||
+      folderName === ".git"
+    ) {
+      continue;
+    }
     console.log("----- Processing folder: " + folderName + " -----");
     const folderPath = path.join(baseFolder, folderName);
 
@@ -29,16 +39,38 @@ const runNpmScriptsInFolders = async (baseFolder) => {
     if (fs.lstatSync(folderPath).isDirectory()) {
       process.chdir(folderPath); // Change to the folder
       report.push(`## Processing folder: ${folderName}\n `);
+      if (EXAM_BRANCH) {
+        try {
+          // Check out specified branch
+          const installOutput = execSync(
+            "git stash && git checkout " + EXAM_BRANCH,
+            {
+              encoding: "utf-8",
+            }
+          );
+          report.push("### git checkout: SUCCESS");
+          summary.passed++;
+          report.push(installOutput); // Append install output
+        } catch (err) {
+          summary.failed++;
+          report.push("### git checkout: FAILED");
+          report.push(`- Error: ${err.message} || "No error output"`);
+          report.push(`- Output: ${err.stdout || "No output"}`);
+
+          process.chdir(originalDir);
+          continue;
+        }
+      }
 
       try {
-        // Run npm install and capture output
-        const installOutput = execSync("npm install", { encoding: "utf-8" });
-        report.push("### npm install: SUCCESS");
+        // Run npm ci and capture output
+        const installOutput = execSync("npm ci", { encoding: "utf-8" });
+        report.push("### npm ci: SUCCESS");
         summary.passed++;
         report.push(installOutput); // Append install output
       } catch (err) {
         summary.failed++;
-        report.push("### npm install: FAILED");
+        report.push("### npm ci: FAILED");
         report.push(`- Error: ${err.message} || "No error output"`);
         report.push(`- Output: ${err.stdout || "No output"}`);
 
@@ -85,11 +117,10 @@ const runNpmScriptsInFolders = async (baseFolder) => {
 };
 
 const writeReportToFile = (folderName) => {
-  const reportFilePath =
-    `${originalDir}/${RESPONSES_DIR}/${folderName}_runtime_report.md`.replace(
-      "pruefung_m324_",
-      ""
-    );
+  const reportFilePath = `${originalDir}/${RESPONSES_DIR}/${folderName.replace(
+    "pruefung_m324_",
+    ""
+  )}_runtime_report.md`;
   let summaryString = `Summary: ${summary.passed} passed, ${summary.failed} failed`;
   const content = `# ${folderName} \n\n# Summary\n${summaryString}\n\n\n# Report\n${report.join(
     "\n"
@@ -102,5 +133,5 @@ const writeReportToFile = (folderName) => {
 };
 
 // Specify the base folder (modify the path as needed)
-const baseFolderPath = path.resolve("responses");
+const baseFolderPath = path.resolve(STUDENTS_CODE_FOLDER);
 runNpmScriptsInFolders(baseFolderPath);
