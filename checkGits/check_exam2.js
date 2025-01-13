@@ -23,6 +23,13 @@ async function runTests() {
     );
 
   for (const folderName of projectFolders) {
+    if (
+      folderName === ".DS_Store" ||
+      folderName === ".github" ||
+      folderName === ".git"
+    ) {
+      continue;
+    }
     const mocha = new Mocha();
 
     const addTest = (title, fn) =>
@@ -52,7 +59,7 @@ async function runTests() {
 
     try {
       addTest(`Validate repository name`, () => {
-        const isValid = /^pruefung_m324_\w+_\w+$/.test(folderName);
+        const isValid = /^pruefung2_m324_\w+_\w+$/.test(folderName);
         if (!isValid) throw new Error("Repository name format mismatch");
       });
 
@@ -158,6 +165,16 @@ async function runTests() {
         });
       });
 
+      addTest(`Check origin/main branch exists`, () => {
+        const branches = execSync("git branch -r", {
+          cwd: projectFolder,
+          encoding: "utf-8",
+        });
+        if (!branches.includes("origin/main")) {
+          throw new Error("origin/main branch missing");
+        }
+      });
+
       addTest(`Check origin/exam branch exists`, () => {
         const branches = execSync("git branch -r", {
           cwd: projectFolder,
@@ -186,6 +203,112 @@ async function runTests() {
           "README_Aufgabe4.md is missing."
         )
       );
+
+      const repoUrl = execSync("git remote get-url origin", {
+        cwd: projectFolder,
+        encoding: "utf-8",
+      }).trim();
+      addTest(
+        `Check if repository ${repoUrl} has GitHub Workflows set up`,
+        () => {
+          const workflows = execSync(
+            `gh workflow list --repo  ${repoUrl} --json name,path,state`,
+            {
+              cwd: projectFolder,
+              encoding: "utf-8",
+            }
+          );
+
+          if (workflows.length === 0) {
+            throw new Error(
+              "No GitHub Actions workflows found in the repository"
+            );
+          } else if (workflows.length === 1) {
+            throw new Error(
+              "Only 1 GitHub Actions workflows found in the repository"
+            );
+          }
+        }
+      );
+      const actionLog = execSync(
+        `gh run list --repo ${repoUrl} --json conclusion,status,attempt,workflowName,event,status`,
+        {
+          cwd: projectFolder,
+          encoding: "utf-8",
+        }
+      );
+      const actions = JSON.parse(actionLog);
+
+      const groupedWorkflows = actions.reduce((acc, run) => {
+        if (!acc[run.workflowName]) {
+          acc[run.workflowName] = [];
+        }
+        acc[run.workflowName].push(run);
+        return acc;
+      }, {});
+      addTest(`Check if the last workflow run was successful`, () => {
+        if (actions.length === 0) {
+          throw new Error("No Actions found in the repository");
+        }
+      });
+
+      Object.keys(groupedWorkflows).forEach((workflowName) => {
+        const lastRun = groupedWorkflows[workflowName].find(
+          (run) => run.status === "completed"
+        );
+
+        addTest(
+          `Check if the last execution of workflow '${workflowName}' was successful`,
+          () => {
+            if (!lastRun) {
+              throw new Error(
+                `No completed runs found for workflow '${workflowName}'`
+              );
+            }
+            if (lastRun.conclusion !== "success") {
+              throw new Error(
+                `The last run of workflow '${workflowName}' was not successful. Conclusion: ${lastRun.conclusion}`
+              );
+            }
+          }
+        );
+      });
+
+      const addPullRequestTests = () => {
+        const repoUrl = execSync("git remote get-url origin", {
+          cwd: projectFolder,
+          encoding: "utf-8",
+        }).trim();
+
+        const pullRequestsLog = execSync(
+          `gh pr list --repo ${repoUrl} --json state,comments,number`,
+          {
+            cwd: projectFolder,
+            encoding: "utf-8",
+          }
+        );
+
+        const pullRequests = JSON.parse(pullRequestsLog);
+
+        addTest(`Check if exactly one Pull Request exists`, () => {
+          if (pullRequests.length !== 1) {
+            throw new Error(
+              `Expected exactly 1 Pull Request, found ${pullRequests.length}`
+            );
+          }
+        });
+
+        addTest(`Check if the Pull Request is open`, () => {
+          if (pullRequests[0].state !== "OPEN") {
+            throw new Error(
+              `The Pull Request is not open. Current state: ${pullRequests[0].state}`
+            );
+          }
+        });
+      };
+
+      addPullRequestTests();
+      // MAIN
 
       const reportFilePath = `${originalDir}/${RESPONSES_DIR}/${folderName.replace(
         "pruefung_m324_",
