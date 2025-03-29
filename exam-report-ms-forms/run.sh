@@ -20,10 +20,14 @@
 #FOLDER="pruefung2_m324_ims22d_nachhol"
 #EXCEL_SOURCE_FILE="M324 - 2024 - Prüfung 2 Nachhol - Docker_CI.CD_Git.xlsx"
 #MAX_POINTS=50
-FOLDER="pruefung1_m324_ina"
-EXCEL_SOURCE_FILE="M324 - INA - 2024 - Prüfung 1.xlsx"
-MAX_POINTS=74
 
+#FOLDER="pruefung1_m324_ina"
+#EXCEL_SOURCE_FILE="M324 - INA - 2024 - Prüfung 1.xlsx"
+#MAX_POINTS=74
+
+FOLDER="pruefung1_m293_ina24"
+EXCEL_SOURCE_FILE="M293 - Prüfung 1 - Web_HTML_CSS Grundlagen.xlsx"
+MAX_POINTS=23
 
 
 # Variables

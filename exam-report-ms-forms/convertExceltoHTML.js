@@ -17,7 +17,7 @@ function formatFooter(examTitle) {
     <footer class="footer">
       <p>${examTitle.replace(".xlsx", "")} - Lehrperson: Roman Hatz 2024/2025</p>
       <p>${new Date().toLocaleString("de")}</p>
-      <p>PDF Forms Report Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
+      <p>MS Forms Report Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
     </footer>`;
 }
 
@@ -58,11 +58,11 @@ function generateTableRows(questionData, userData) {
     controlCount += Number(question.points);
     html += `
       <tr>
-        <td>${question.title}</td>
-        <td class="${hasErrors ? "td_red" : "td_green"}">${question.points}</td>
-        <td>${question.maxPoints}</td>
-        <td>${question.feedback.length > 3 ? question.answer : ""}</td>
-        <td class="${hasErrors ? "td_red" : "td_green"}">${question.feedback}</td>
+        <td>${escapeHTML(question.title)}</td>
+        <td class="${hasErrors ? "td_red" : "td_green"}">${escapeHTML(String(question.points))}</td>
+        <td>${escapeHTML(String(question.maxPoints))}</td>
+        <td>${question.feedback.length > 3 ? escapeHTML(question.answer) : ""}</td>
+        <td class="${hasErrors ? "td_red" : "td_green"}">${escapeHTML(question.feedback)}</td>
       </tr>`;
   });
   if (controlCount !== userData.Gesamtpunktzahl) {
@@ -76,7 +76,18 @@ function generateTableRows(questionData, userData) {
 
   return html;
 }
-
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, function (match) {
+    const escapeMap = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
+    return escapeMap[match];
+  });
+}
 function writeHtmlToFile(htmlContent, outputFilePath) {
   fs.writeFileSync(outputFilePath + ".html", htmlContent);
 }

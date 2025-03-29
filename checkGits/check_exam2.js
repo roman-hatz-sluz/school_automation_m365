@@ -47,6 +47,70 @@ async function runTests() {
           }
         });
       });
+      const logOutput = execSync("git log --pretty=format:%s", {
+        cwd: projectFolder,
+        encoding: "utf-8",
+      });
+      addTest(`Check if there is a commit starting with "Task 4"`, () => {
+        const hasTask4Commit = logOutput
+          .split("\n")
+          .some((msg) => msg.startsWith("Task 4"));
+        if (!hasTask4Commit) {
+          throw new Error(`No commit message starting with "Task 4" found`);
+        }
+      });
+
+      addTest(`Check if there is a commit starting with "Task 5"`, () => {
+        const hasTask5Commit = logOutput
+          .split("\n")
+          .some((msg) => msg.startsWith("Task 5"));
+        if (!hasTask5Commit) {
+          throw new Error(`No commit message starting with "Task 5" found`);
+        }
+      });
+      const logMessages = logOutput.split("\n");
+      const otherMessages = logMessages.filter(
+        (msg) =>
+          !expectedCommits.includes(msg) &&
+          !msg.startsWith("Task 4") &&
+          !msg.startsWith("Task 5")
+      );
+      addTest(
+        `Check if there are not more than 2 other commit messages`,
+        () => {
+          if (otherMessages.length > 2) {
+            throw new Error(
+              `Found more than 2 other commit messages: ${otherMessages.join(
+                ", "
+              )}`
+            );
+          }
+        }
+      );
+      addTest(
+        `Check if there are not more than 3 other commit messages`,
+        () => {
+          if (otherMessages.length > 3) {
+            throw new Error(
+              `Found more than 3 other commit messages: ${otherMessages.join(
+                ", "
+              )}`
+            );
+          }
+        }
+      );
+      addTest(
+        `Check if there are not more than 4 other commit messages`,
+        () => {
+          if (otherMessages.length > 4) {
+            throw new Error(
+              `Found more than 4 other commit messages: ${otherMessages.join(
+                ", "
+              )}`
+            );
+          }
+        }
+      );
     };
     const checkFileExists = (filePath, successMsg, errorMsg) => {
       if (!fs.existsSync(filePath)) {
@@ -322,13 +386,18 @@ async function runTests() {
           resolve();
         });
 
+        let testMessages = [];
         runner.on("test end", (test) => {
-          outputStream.write(`${test.title}: ${test.state}\n`);
+          const statusEmoji = test.state === "passed" ? "✅" : "❌";
+          testMessages.push(`${statusEmoji} ${test.title}: ${test.state}\n`);
         });
 
         runner.on("end", () => {
           outputStream.write(
-            `\nStats: ${runner.stats.passes} passed, ${runner.stats.failures} failed\n`
+            `\nStats: ${runner.stats.passes} passed, ${
+              runner.stats.failures
+            } failed\n
+            \n${testMessages.join("\n")}`
           );
           outputStream.end();
         });
