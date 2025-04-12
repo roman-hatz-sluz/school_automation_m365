@@ -9,7 +9,7 @@ import time
 import sys
 from bs4 import BeautifulSoup
 
-examTitle="Modul M324 - DevOps - Prüfung 1 - 2024"
+examTitle="M290 - Prüfung - 2025"
 
 def create_draft_with_attachment(subject, recipient, content, attachment_path):
     attachment_path = os.path.abspath(attachment_path)
@@ -91,15 +91,15 @@ def process_html_files_in_directory(directory_path, draft_mode=True):
                 4.50: "Okay - „The computer was born to solve problems that did not exist before.“ – Bill Gates 🛠️⌛",
                 4.25: "Genügend - „Bad code can always be improved. No code lives forever.“ – Bjarne Stroustrup 🧐✅",
                 4.00: "Genügend - „It’s not that we use technology, we live technology.“ – Godfrey Reggio 🐞🚧",
-                3.75: "Ungenügend - „In theory, there is no difference between theory and practice. In practice, there is.“ – Yogi Berra 🛑❌",
-                3.50: "Ungenügend - „Errors should never pass silently. Unless explicitly silenced.“ – Zen of Python 🐛🔍",
+                3.75: "Leider knapp an genügend vorbei - „In theory, there is no difference between theory and practice. In practice, there is.“ – Yogi Berra 🛑❌",
+                3.50: "Leider etwas zu wenig  - „Errors should never pass silently. Unless explicitly silenced.“ – Zen of Python 🐛🔍",
                 3.25: "Schwach - „Programs are meant to be read by humans and only incidentally for computers to execute.“ – Harold Abelson 😓❌",
                 3.00: "Schwach - „The only way to go fast is to go well.“ – Robert C. Martin 💥❌",
             }
 
             # Check if the rounded grade is below 3
             if rounded_grade < 3:
-                description = "Unglaublich schlecht - Das war nichts, aber beim nächsten Mal klappt's!"
+                description = "Schlecht - Das war nichts, aber beim nächsten Mal klappt's!"
             elif rounded_grade >= 3 and rounded_grade <= 6:
                 description = grade_descriptions.get(
                     rounded_grade, "Ungültige Note - Hier stimmt etwas nicht."

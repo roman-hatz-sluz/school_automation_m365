@@ -15,7 +15,7 @@ function computeNoteValue(totalPoints, maxPointsTotal) {
 function formatFooter(examTitle) {
   return `
     <footer class="footer">
-      <p>${examTitle.replace(".xlsx", "")} - Lehrperson: Roman Hatz 2024/2025</p>
+      <p>${examTitle.replace(".xlsx", "")} - Lehrperson: Roman Hatz</p>
       <p>${new Date().toLocaleString("de")}</p>
       <p>MS Forms Report Generator: <a href="https://github.com/roman-hatz-sluz/school_automation_m365" target="_blank">https://github.com/roman-hatz-sluz/school_automation_m365</a></p>
     </footer>`;
@@ -62,7 +62,7 @@ function generateTableRows(questionData, userData) {
         <td class="${hasErrors ? "td_red" : "td_green"}">${escapeHTML(String(question.points))}</td>
         <td>${escapeHTML(String(question.maxPoints))}</td>
         <td>${question.feedback.length > 3 ? escapeHTML(question.answer) : ""}</td>
-        <td class="${hasErrors ? "td_red" : "td_green"}">${escapeHTML(question.feedback)}</td>
+        <td class="${hasErrors ? "td_red" : "td_green"}">${question.feedback}</td>
       </tr>`;
   });
   if (controlCount !== userData.Gesamtpunktzahl) {

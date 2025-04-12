@@ -25,9 +25,12 @@
 #EXCEL_SOURCE_FILE="M324 - INA - 2024 - Prüfung 1.xlsx"
 #MAX_POINTS=74
 
-FOLDER="pruefung1_m293_ina24"
-EXCEL_SOURCE_FILE="M293 - Prüfung 1 - Web_HTML_CSS Grundlagen.xlsx"
-MAX_POINTS=23
+FOLDER="pruefung_m291_MMA22"
+EXCEL_SOURCE_FILE="Prüfung M291 - 03.2025.xlsx"
+MAX_POINTS=24
+
+
+ 
 
 
 # Variables
